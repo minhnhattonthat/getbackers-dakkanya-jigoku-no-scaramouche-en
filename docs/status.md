@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 8 (QA in the emulator) in progress.
+- **Phase:** 9 done: release v1.0 built and verified locally (not published; publishing is the user's call).
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -84,7 +84,12 @@ Updated at the end of every session. Keep it to what the next session needs; his
   dirs step_229/232 have no sheet). `--logs-only` over every step dir: B 1410 seen (the re-shot scenes replaced
   their longer logs). Phase 9 ready: `tools/release.py` (build, check, smoke, jp_left, qa_gate, BPS + re-apply,
   zip) + `docs/README_release.txt`.
-- **Next:** round-5 verdicts -> `qa_gate.py check` exit 0 -> `tools/release.py`. Battles 229-267 tour when memory
+- **Done (phase 8):** round 5 (26 sheets) all ok; `;` glyph tail lowered (read as a colon). `qa_gate.py check`:
+  353 sheets, exit 0.
+- **Done (phase 9):** `tools/release.py` all green (build, 34 tests, smoke, jp_left 0 runs, qa_gate, BPS made +
+  re-applied): `release/GetBackers_Dakkanya_Jigoku_no_Scaramouche_EN_v1.0.zip` (BPS 388894 bytes, sha1 5320d237...;
+  README.txt). Base CRC32 C0A0A979, patched CRC32 A0726B81 / sha1 7f5a80fe... (= `build/getbackers_en.gba`).
+- **Next:** publish when the user says so (never `gh release create` without them). Battles 229-267 tour when memory
   allows (`text_tour.py build/getbackers_en.gba --jobs 1 --out work/qa/tour_en --scenes step:229 ...`).
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
