@@ -24,9 +24,11 @@ EXTRA = {'—': 0xA0, '…': 0xA1}   # bytes 0xA0-0xDF are never a Shift-JIS lea
 NCODES = 0xE0
 STEP_AT, C_AT = 0, 4            # entry points (CODE + n): branches to vwf_step / vwf_c
 # loops A and B: (site, original bytes, ctx byte-offset source, end-of-text target, drew-a-char target, pitch, lift)
-# A (yes/no window and 0x0801FEDA) keeps the JP 16 px pitch: the choice cursor steps 16 px
-SITES = ((0x1A3E6, '206f81460188', 'ldr r1, [r4, #0x74]', 0x1A48C, 0x1A466, 16, 0),
+# A draws the field box (canvas offset 0: 3 lines like B) and the yes/no window (offset 0x1000: keeps the JP 16 px
+# pitch, the choice cursor steps 16 px); pitch/lift here are for offset 0
+SITES = ((0x1A3E6, '206f81460188', 'ldr r1, [r4, #0x74]', 0x1A48C, 0x1A466, LINE_H, Y_LIFT),
          (0x1A724, '206f81460188', 'movs r1, #0', 0x1A7C8, 0x1A7A4, LINE_H, Y_LIFT))
+CHOICE_PITCH = 16
 C_SITE, C_OLD, C_RET = 0x2208, '1648261c6436337818180078271c6537', 0x229C
 
 
@@ -346,6 +348,11 @@ HOOK = """
   mov ip, r3
   movs r2, #{pitch}
   movs r3, #{lift}
+  cmp r1, #0
+  beq go
+  movs r2, #{choice}
+  movs r3, #0
+go:
   bl stub
   cmp r0, #0
   beq {end:#x}
@@ -399,7 +406,8 @@ def hooks():
     """[(site, original bytes, hook bytes)] for loops A, B and the help line C."""
     fn = 0x08000000 + CODE + 1
     out = [(site, bytes.fromhex(old), asm(HOOK.format(arg=arg, end=0x08000000 + end, drew=0x08000000 + drew,
-                                                       fn=fn + STEP_AT, pitch=pitch, lift=lift), 0x08000000 + site))
+                                                       fn=fn + STEP_AT, pitch=pitch, lift=lift, choice=CHOICE_PITCH),
+                                          0x08000000 + site))
            for site, old, arg, end, drew, pitch, lift in SITES]
     out.append((C_SITE, bytes.fromhex(C_OLD), asm(HOOK_C.format(ret=0x08000000 + C_RET, fn=fn + C_AT),
                                                     0x08000000 + C_SITE)))

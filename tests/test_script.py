@@ -81,6 +81,7 @@ def test_text_is_never_marked_data_silently(recs, script):
 
 def test_en_lint(script):
     import vwf
+    import windows
     t = vwf.en_table()
     errs = []
     for e in script.values():
@@ -93,10 +94,20 @@ def test_en_lint(script):
             errs.append("%s: %s" % (e["id"], x))
         if PRINTF.findall(en) != PRINTF.findall(jp):
             errs.append("%s: printf specifiers differ" % e["id"])
+        errs += ["%s: %s (%s)" % (e["id"], x, windows.window_of(e)) for x in windows.check(e)]
         for strip in (str.lstrip, str.rstrip):
             if len(jp) - len(strip(jp, BLANK)) and len(en) == len(strip(en, BLANK)):
                 errs.append("%s: en drops the jp's leading/trailing blank" % e["id"])
     assert not errs, "\n".join(errs[:50])
+
+
+def test_markers_fill_their_windows_exactly(script):
+    import marker
+    import windows
+    bad = ["%s: %s" % (i, x) for i, e in marker.script(script).items() for x in windows.check(e)]
+    assert not bad, "\n".join(bad[:20])
+    e = next(e for e in script.values() if windows.window_of(e) == "box" and len(e["jp"]) > 20)
+    assert windows.check(e, marker.marker(e) + " Wwwww")      # one word more and the lint fails
 
 
 @needs_rom

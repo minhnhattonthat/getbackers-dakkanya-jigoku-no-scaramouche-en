@@ -1,23 +1,23 @@
 """marker.py: the marker script (phase 5): every text entry becomes `#<id>` + filler, so each box shows which entry it is.
 
-Each {br}-separated part of the jp gets its own line; one-part text longer than SHORT jp chars fills two lines (the
-dialogue box) to LINE px each on LINES lines, shorter text (names, labels) gets `#id` + a word. printf specifiers stay, in order.
+Each marker fills its window (tools/windows.py) to the budget exactly: box = 3 lines to 216 px, help/item = 1 line to
+232 px within the byte limit, choice = `#id` + one short option per {br} part. Text of SHORT jp chars or fewer
+(names, labels) gets `#id` + a word. printf specifiers stay, in order.
     python -X utf8 tools/build.py --marker      -> build/getbackers_marker.gba"""
 import re
 
 import vwf
+import windows
 
-LINE = vwf.XMAX - 8     # px per dialogue line (text starts at x 8): a marker line that wraps shows a narrower box
-LINES = 3
 SHORT = 8
 FILLER = 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. ' * 3
 PRINTF = re.compile(r'%(?:s|3d|6d)')
 
 
-def fill(head, px=LINE):
+def fill(head, px, nbytes=None):
     out = head
     for w in FILLER.split():
-        if vwf.width(out + ' ' + w) > px:
+        if vwf.width(out + ' ' + w) > px or (nbytes and len(out) + 1 + len(w) > nbytes):
             break
         out += ' ' + w
     return out
@@ -25,15 +25,16 @@ def fill(head, px=LINE):
 
 def marker(e):
     jp, mid = e['jp'], '#' + e['id'].lstrip('0')
-    parts = jp.split('{br}')
-    spec = ''.join(' ' + p for p in PRINTF.findall(jp))
-    if len(parts) == 1 and len(jp) <= SHORT:
-        return mid + spec + ' Abc'
-    if max(map(len, parts)) <= 6:      # choices (はい{br}いいえ): the yes/no window is 6 tiles wide
-        return '{br}'.join([mid + spec] + ['Ab'] * (len(parts) - 1))
-    if len(parts) == 1:
-        return '{br}'.join([fill(mid + spec)] + [fill('')[1:]] * (LINES - 1))
-    return '{br}'.join(fill((mid + spec) if i == 0 else '', LINE)[0 if i == 0 else 1:] for i in range(len(parts)))
+    head = mid + ''.join(' ' + p for p in PRINTF.findall(jp))
+    win = windows.window_of(e)
+    px, lines, nbytes, _ = windows.WINDOWS[win]
+    if win == 'choice':
+        return '{br}'.join([mid] + ['Ab'] * jp.count('{br}'))
+    if len(jp) <= SHORT and '{br}' not in jp:
+        return head + ' Abc'
+    if PRINTF.search(jp):       # %s expands to a name: keep room for it
+        px, nbytes = px - 60, (nbytes or 999) - 12
+    return '{br}'.join([fill(head, px, nbytes)] + [fill('', px)[1:]] * (lines - 1))
 
 
 def script(base):
