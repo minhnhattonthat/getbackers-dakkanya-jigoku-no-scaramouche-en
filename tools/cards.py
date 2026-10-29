@@ -165,6 +165,8 @@ def apply(rom, writes):
     loc_apply(rom, writes)
     sheet_apply(rom, writes)
     news_apply(rom, writes)
+    kana_apply(rom, writes)
+    props_apply(rom, writes)
 
 
 def pointer_words():
@@ -358,7 +360,7 @@ def sheet_apply(rom, writes):
 def sheet_ranges():
     """[(start, end)] of the LZ77 blocks rewritten in place, in the original ROM (build.allowed)."""
     rom = ROM.read_bytes()
-    return [(off, off + ((lzscan.lz77(rom, off)[1] + 3) & ~3)) for off in SHEETS + [NEWS]]
+    return [(off, off + ((lzscan.lz77(rom, off)[1] + 3) & ~3)) for off in SHEETS + [NEWS, KANA, PROPS]]
 
 
 # --- 7NEWS intro screen: one 4bpp sheet, 16 tiles wide, reached by a table: rewritten in place -------------------
@@ -405,10 +407,66 @@ def news_apply(rom, writes):
     px = grid(tiles, PHOTO)
     relabel(px, (14, 66, 51, 61), 6, 'URA-TOCHO')    # x < 14 is behind the newscaster's hair
     ungrid(tiles, PHOTO, px)
+    rewrite(rom, writes, NEWS, tiles, '7NEWS sheet')
+
+
+def rewrite(rom, writes, off, tiles, what):
+    """Recompress tiles into the LZ77 block at off, in place."""
     data = lzcomp.compress(bytes(tiles))
-    old = (lzscan.lz77(rom, NEWS)[1] + 3) & ~3
-    assert len(data) <= old, '7NEWS sheet: %d bytes > %d' % (len(data), old)
-    rom_text._write(rom, writes, NEWS, data + bytes(old - len(data)), '7NEWS sheet')
+    old = (lzscan.lz77(rom, off)[1] + 3) & ~3
+    assert len(data) <= old, '%s: %d bytes > %d' % (what, len(data), old)
+    rom_text._write(rom, writes, off, data + bytes(old - len(data)), what)
+
+
+# --- Ginji's field sprite sheet: 16 tiles wide; small はい / いいえ at tile rows 12-15, columns 2-7, beside the
+# "!" / "?" emotes (what shows them is not found: redrawn so they can't surface in Japanese) ----------------------
+KANA = 0x1ABD44
+YESNO = [[(12 + r) * 16 + 2 + c for c in range(6)] for r in range(4)]
+
+
+def kana_apply(rom, writes):
+    tiles = bytearray(lzscan.lz77(rom, KANA)[0])
+    px = grid(tiles, YESNO)
+    relabel(px, (0, 48, 0, 16), 0, 'Yes')
+    relabel(px, (0, 48, 16, 32), 0, 'No')
+    ungrid(tiles, YESNO, px)
+    rewrite(rom, writes, KANA, tiles, 'Ginji sprite sheet')
+
+
+# --- Field props sheet: two signposts (columns 12-15, tile rows 7-12), each a small plate over a big one, text
+# 5 px tall in ink 0xD on fill 2: ふれあい/ひろば and とり/ぱーく. The map that shows them is not found ---------------
+PROPS = 0x11C08C
+POSTS = [[r * 16 + c for c in range(12, 16)] for r in range(7, 13)]
+TINY = {'A': '010 101 111 101 101', 'B': '110 101 110 101 110', 'D': '110 101 101 101 110', 'E': '111 100 110 100 111',
+        'G': '011 100 101 101 011', 'I': '1 1 1 1 1', 'K': '101 101 110 101 101', 'N': '101 111 111 101 101',
+        'O': '010 101 101 101 010', 'P': '110 101 110 100 100', 'R': '110 101 110 101 101', 'T': '111 010 010 010 010',
+        'Z': '111 001 010 100 111'}
+SIGNS = [('PET', 'ZOO'), ('BIRD', 'PARK')]      # small plate: rows 2-6, about 22 px wide inside
+
+
+def tiny(px, text, cx, y, ink):
+    """Draw capitals from the 3x5 TINY font centred on cx, top row y, 1 px apart."""
+    x = cx - (sum(len(TINY[ch].split()[0]) + 1 for ch in text) - 1) // 2
+    for ch in text:
+        rows = TINY[ch].split()
+        for dy, r in enumerate(rows):
+            for dx, b in enumerate(r):
+                if b == '1':
+                    px[y + dy][x + dx] = ink
+        x += len(rows[0]) + 1
+
+
+def props_apply(rom, writes):
+    tiles = bytearray(lzscan.lz77(rom, PROPS)[0])
+    px = grid(tiles, POSTS)
+    for k, (top, big) in enumerate(SIGNS):
+        for y0, y1, x0, x1 in ((2, 8, 5, 29), (11, 18, 5, 29)):
+            for y in range(y0 + 24 * k, y1 + 24 * k):
+                px[y][x0:x1] = [2 if v in (1, 9, 0xB, 0xD) else v for v in px[y][x0:x1]]
+        tiny(px, top, 16, 2 + 24 * k, 0xD)
+        tiny(px, big, 16, 12 + 24 * k, 0xD)
+    ungrid(tiles, POSTS, px)
+    rewrite(rom, writes, PROPS, tiles, 'field props sheet')
 
 
 def loc_apply(rom, writes):

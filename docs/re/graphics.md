@@ -25,9 +25,9 @@ Status column: **EN** = redrawn by `tools/cards.py` (the build applies it) and s
 | Chapter cards ACT.1-6 + final `ACT OF...` with Japanese titles | card table 0x6A970 x 7 | **EN**: all 7 seen (work/qa/warp_cards) |
 | Item cards (24) | Z2CF684, Z2D0718, Z2D1878: 32-tile-wide sprite sheets, 64x32 cards, blanks after the names | **EN**: `cards.ITEMS` (glossary names); in place. All 24 seen in the ITEMS menu (`warp.lua` `ALL=1`, `menu_items` + R) |
 | Skill-name labels (44) | Z2D2A24, Z2D3928, Z2D49F0, Z2D5BCC, Z2D6D74, Z2D8074 (table-reached: rewritten in place) | **EN**: names from the script; 21 seen in the SPECIAL menu with `ALL=1` (Ginji 4, Shido 4, Kazuki 4, Himiko 8, Akabane 1; the sheet is picked by character id, struct byte 0), the other 23 (Ban's sheet, later skills: unlock bits not found) static only; 雷帝降臨 label = "Lightning Emperor" (`cards.SHORT`) |
-| Brush-kanji fragment (bottom row only) | Z2C441C +0 | **open**: 18 tiles, no pointer; probably unused (no card uses it) |
-| Shop-sign sprites (やきとり lantern, another kana sign) | Z11C08C (+C00..+1400, cols 12-15, 28-31) | **open**: field map props, check in-game |
-| Small 8 px kana はい/いいえ and の beside a chibi sprite | Z1ABD44 (+1800..+1C00) | **open**: medium confidence; check in-game |
+| Brush-kanji fragment (bottom row only) | Z2C441C +0 | **unused**: 18 tiles, no pointer, no card or table reaches it; left as is |
+| Shop-sign sprites (やきとり lantern, another kana sign) | Z11C08C (+C00..+1400, cols 12-15, 28-31) | **EN (static)**: two signposts ふれあい/ひろば, とり/ぱーく -> `PET`/`ZOO`, `BIRD`/`PARK` (`cards.props_apply`, 3x5 `TINY` font, in place). Not in VRAM on any of the 54 field maps' first screens (`fieldscan`): the map that shows them is not found |
+| Small 8 px kana はい/いいえ and の beside a chibi sprite | Z1ABD44 (+1800..+1C00) | **EN (static)**: Ginji's field sprite sheet (tile rows 12-15, beside the "!"/"?" emotes): `Yes`/`No` (`cards.kana_apply`, in place). Its walk frames load on the field maps, the kana never did in the tours: trigger not found |
 | Text-block 8x8 font (ASCII + half-width katakana) | raw 0x2FA64-0x30E43 | a font, not a label: see text.md |
 
 ## English already (keep; check fit with names in glossary.md)
