@@ -24,7 +24,7 @@
 {"id": "05A364", "ptrs": ["92774", "928F4", "92E3C", "92E4C", "92EF4", "93148", "93190"], "max": 4, "jp": "[37][33]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
 {"id": "05A368", "ptrs": ["9276C"], "max": 68, "jp": "どちらにしろ、本日はお引き取りいただいたほうがよろしいかと……」", "en": "In any case, I believe it would be best if you{br}left for today...\"", "status": "done", "note": ""},
 {"id": "05A3AC", "ptrs": ["92768"], "max": 52, "jp": "受付嬢「アポイントとはお約束のことでございます。", "en": "Receptionist: \"An appointment means a prior{br}arrangement.", "status": "done", "note": ""},
-{"id": "05A3E0", "ptrs": ["92764"], "max": 20, "jp": "蛮「アホが……」", "en": "Ban: \"Moron...\"", "status": "done", "note": ""},
+{"id": "05A3E0", "ptrs": ["92764"], "max": 20, "jp": "蛮「アホが……」", "en": "Ban: \"Appo-lutely clueless...\"", "status": "done", "note": ""},
 {"id": "05A3F4", "ptrs": ["92760"], "max": 4, "jp": "[36][31]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
 {"id": "05A3F8", "ptrs": ["92758"], "max": 44, "jp": "銀次「アポ？　アポーってプロレスラー？」", "en": "Ginji: \"Appo? Appo... like the pro wrestler?\"", "status": "done", "note": ""},
 {"id": "05A424", "ptrs": ["92754"], "max": 4, "jp": "[38][32]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
@@ -117,7 +117,7 @@
 {"id": "05B0B0", "ptrs": ["929E0"], "max": 44, "jp": "いたずらに人の命を奪うのが目的ではない」", "en": "Taking lives for no reason is not our aim.\"", "status": "done", "note": ""},
 {"id": "05B0DC", "ptrs": ["929DC"], "max": 56, "jp": "花月「僕らは『ＨＯＧ』とかいうものを探しに来たんだ。", "en": "Kazuki: \"We came looking for a thing called{br}'HOG.'", "status": "done", "note": ""},
 {"id": "05B114", "ptrs": ["929D8"], "max": 4, "jp": "[31][31][32]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
-{"id": "05B118", "ptrs": ["929D0"], "max": 60, "jp": "疑獄「その通り！　すべては筒抜けさ！　お前らの情報もな！」", "en": "Hitoya: \"That's right! Everything went{br}straight to the Tocho! Your info, too!\"", "status": "done", "note": ""},
+{"id": "05B118", "ptrs": ["929D0"], "max": 60, "jp": "疑獄「その通り！　すべては筒抜けさ！　お前らの情報もな！」", "en": "Hitoya: \"That's right! Everything went{br}straight back to them! Your info, too!\"", "status": "done", "note": ""},
 {"id": "05B154", "ptrs": ["929CC"], "max": 36, "jp": "赤屍「スパイ、というわけですね」", "en": "Akabane: \"A spy, in other words.\"", "status": "done", "note": ""},
 {"id": "05B178", "ptrs": ["929C8"], "max": 52, "jp": "卑弥呼「この人！　スカラムーシュの部下だったわ！」", "en": "Himiko: \"Him! He was Scaramouche's underling!\"", "status": "done", "note": ""},
 {"id": "05B1AC", "ptrs": ["929C4", "92C44", "92F88"], "max": 4, "jp": "[31][30][33]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
@@ -211,8 +211,8 @@
 {"id": "05BEBC", "ptrs": ["92CBC"], "max": 48, "jp": "丈夫「わが弟、御楯よ。ブザマな戦いぶりだよの。", "en": "Masurao: \"Mitate, my little brother. What a{br}sorry showing, eh.", "status": "done", "note": ""},
 {"id": "05BEEC", "ptrs": ["92D30"], "max": 56, "jp": "丈夫「そんな我々にとって脅威となるものが最近現れた」", "en": "Masurao: \"But lately, a threat to the likes of{br}us appeared.\"", "status": "done", "note": ""},
 {"id": "05BF24", "ptrs": ["92D2C"], "max": 24, "jp": "銀次「うん、確かに」", "en": "Ginji: \"Yeah, that's true.\"", "status": "done", "note": ""},
-{"id": "05BF3C", "ptrs": ["92D20"], "max": 60, "jp": "我々は信頼を得てきた。ジャンクキッズも他人事ではないはず」", "en": "we have earned trust. That's no stranger's{br}business to you Junk Kids either.\"", "status": "done", "note": ""},
-{"id": "05BF78", "ptrs": ["92D1C"], "max": 60, "jp": "裏新宿を中心とした犯罪組織のバランス調整を執り行うことで、", "en": "and the crime syndicates centred on{br}Ura-Shinjuku,", "status": "done", "note": ""},
+{"id": "05BF3C", "ptrs": ["92D20"], "max": 60, "jp": "我々は信頼を得てきた。ジャンクキッズも他人事ではないはず」", "en": "we have earned trust. That should hit close{br}to home for you Junk Kids, too.\"", "status": "done", "note": ""},
+{"id": "05BF78", "ptrs": ["92D1C"], "max": 60, "jp": "裏新宿を中心とした犯罪組織のバランス調整を執り行うことで、", "en": "and the crime syndicates centered on{br}Ura-Shinjuku,", "status": "done", "note": ""},
 {"id": "05BFB4", "ptrs": ["92D18"], "max": 44, "jp": "実際、とどまるところを知らない少年犯罪や、", "en": "but in truth, by balancing out youth crime{br}that knows no bounds,", "status": "done", "note": ""},
 {"id": "05BFE0", "ptrs": ["92D14"], "max": 44, "jp": "裏の世界で秩序も何もないと思うだろうが、", "en": "You'd think there's no such thing as order in{br}a shadow world,", "status": "done", "note": ""}
 ]

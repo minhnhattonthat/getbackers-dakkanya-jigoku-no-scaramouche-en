@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 5 (engine spike + marker build) done; next is phase 6 (translate).
+- **Phase:** 6 (translate) done; next is phase 7 (insert, fit, check).
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -34,9 +34,20 @@ Updated at the end of every session. Keep it to what the next session needs; his
   all 136 arrived, no hang, 1600 entries shown (B; one A, 0x37094), 0 mismatches with `windows.window_of`.
   `work/qa/text_tour/seen.tsv`. Rerun with `--jobs 2` when memory allows (steps not yet logged: 11).
   Tests: `tests/test_vwf.py` (unicorn), marker-fills-window, hook branch-target check. Details: `docs/re/text.md`.
-- **Next:** phase 6 (translate): translator brief + glossary, batches by window (`windows.window_of`), budgets
-  from `tools/windows.py` (box: 3 x 216 px; help: 1 x 232 px; names/items short). Write `{br}` breaks by
-  `vwf.width` (the hook only auto-wraps mid-word as a fallback).
+- **Done (phase 6):** all 5344 text entries `done` in `script/` (36 batches b001-b036, 9 translator agents, 9
+  reviewer passes: 0 Critical; every Important and most Minors fixed by the original translator; project sweeps for
+  UK spelling, "sir" to Scaramouche, "Tocho"/abbreviations clean). `tools/batches.py` split/check/merge/fit/pairs/
+  story (`tests/test_batches.py`): translators write prose, the merge word-wraps box pages with `{br}` at 216 px and
+  keeps the JP's leading/trailing blank; the check enforces ids, printf, `{br}` count, font chars, width, speaker
+  labels and honorifics from `glossary.md` (generic "Label" rows: speaker only). Docs: `docs/translator-brief.md`,
+  `docs/reviewer-brief.md`, `docs/style-reference.md`, `docs/synopsis.md`, `glossary.md` (302 terms + batch
+  decisions). Batch files live in `work/tl/` (gitignored; `script/` is the source of truth). Build + smoke ok
+  (sha1 7fe398ca...). Opening dialogue checked in-game (step 4): wraps cleanly in 3 lines.
+- **Next:** phase 7 (insert, fit, check): romdiff allowed ranges for the relocated text (past 0x400000) + engine,
+  write-log check, control codes; then phase 8 tours (`text_tour.py` on the English build, warp_all, visual QA).
+- **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
+  item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
+  alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
 - **Open (not blocking):**
   - Windows still a guess (tools/windows.py): yes/no (0x30F28, 6-tile window), item names in the field found/full
     message, ENEMIES menu names/bios and battle quips (tables 0x65000/0x68000, assumed help bar). Tour them in

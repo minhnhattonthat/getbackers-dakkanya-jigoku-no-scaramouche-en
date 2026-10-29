@@ -9,7 +9,7 @@ approved pair here when a review settles a voice question.
 | Ban Mido (蛮) | オレ, rough Kanto slang (ねー, ってんだ, テメー), cocky, flirts, insults everyone | Cocky street talk: contractions, "ya", "damn", put-downs and swagger. Never polite unless he's conning someone. |
 | Ginji Amano (銀次) | オレ, cheerful, naive, says 蛮ちゃん | Upbeat, earnest, a little dim: "Ban-chan!", "Wow!", "Huh?" Never crude. |
 | Scaramouche (スカラムーシュ) | 私, terse, imperious | Cold, formal, theatrical menace. No contractions. |
-| Umakai (馬飼) and other underlings | ございます, grovelling | Stiff and servile: "Yes, sir.", "My deepest apologies." |
+| Umakai (馬飼) and other underlings | ございます, grovelling | Stiff and servile: "Yes, Scaramouche-sama.", "My deepest apologies." Never "sir"/"ma'am" to Scaramouche before the step-235 reveal (it genders them). |
 | Himiko Kudo (卑弥呼) | あたし, sharp, tsundere | Sharp-tongued, teasing, bossy. |
 | Shido Fuyuki (士度) | オレ, curt | Laconic, gruff. |
 | Kazuki Fuchoin (花月) | 僕, gentle, polite | Soft-spoken and courteous. |
@@ -32,7 +32,7 @@ approved pair here when a review settles a voice question.
 | 044C18 | 蛮「だったらさー、そこら辺で一緒にメシでもどう？ | Ban: "Then how 'bout grabbing a bite with us somewhere around here? |
 | 044BF8 | ハラ減っちゃってさーオレら」 | We're kinda starving, see." |
 | 044B64 | 蛮「よくぞ聞いてくれたぜお嬢さん{br}『奪られたら奪り還せ』が信条の……」 | Ban: "Glad you asked, little lady!{br}Our creed is 'If it's taken, take it back'..." |
-| 044B40 | 銀次「無敵の二人組の噂を……」 | Ginji: "You've heard the rumours of the unbeatable duo..." |
+| 044B40 | 銀次「無敵の二人組の噂を……」 | Ginji: "You've heard the rumors of the unbeatable duo..." |
 | 044B24 | 蛮「そーよ、オレが美堂蛮」 | Ban: "That's right. I'm Ban Mido." |
 | 044B08 | 銀次「オレが天野銀次！」 | Ginji: "And I'm Ginji Amano!" |
 | 044AE0 | 蛮「依頼成功率ほぼ１００％の奪還屋」 | Ban: "Retrieval agents with a nearly 100% success rate--" |

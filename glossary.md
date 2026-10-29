@@ -374,4 +374,16 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | 開発中！ | Under development! |  | Debug leftover strings. |  |
 
 ## Decisions from earlier batches
-- (none yet)
+- all: US spelling. Scaramouche ungendered (no he/she, no "sir") before step 235; "she" after.
+- all: Ginji -> Yamamura オッチャン = "Pops"; Ban says "old man". 奪還率 = "success rate".
+- all: generic labels (notes "Label") are not names: お客様/お爺さん/駅員さん take no honorific (customer, Grandpa).
+- b001: enemy letter series follow the A row (Agent B-E, Agent A'/B'/C', Scary Dude B-D, Junk Kid B/C, Manji
+  Brother B); Electronic Key B-E; Staff ID Card 2/3; Zagad forms: Second Form / Third Form - B Mode / Fourth Form -
+  B Mode / Final Form - F Mode; インディゴ君 Indigo-kun, ソリッド君 Solid-kun; 裏新宿爆走隊 Ura-Shinjuku Speed Squad.
+- b001: α（アルファ） 0x2F0E0 = "Alpha" (the α is a letter there, not {br}). 赤毛の鬼神 = "The red-haired demon".
+- b005: ドラゴニア会 in text = "Dragonia Society" (speaker label "Dragonia Member"); ジェッカー Jecker; クリちゃん Kuri-chan.
+- b013: ペスちゃん = Pesu-chan (Hepburn); ゲッシ印 Gnaw-Brand; 裏都庁総務部/会計部 Ura-Tocho General Affairs / Accounting
+  Department.
+- b021: マドカお嬢様 Miss Madoka; Paro (parrot) speaks in ALL CAPS broken English.
+- b029: 兄上 = Brother (Mitate to Masurao); カヅっちゃん Kazu-chan; 遊びの時間は終わり = "Playtime is over."
+- b033: クス (Akabane's giggle) = "Heh."; いい悪夢（ゆめ）見れたかよ = the fixed "Enjoy your dream?".

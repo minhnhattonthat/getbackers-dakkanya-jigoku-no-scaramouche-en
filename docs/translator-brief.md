@@ -59,7 +59,12 @@ Dry-run a long page: `python -X utf8 tools/batches.py fit "Ban: \"text...\""` pr
   `" found!` and `" -- you can't carry any more.` Make the joined result read right.
 
 ## Notes from earlier batches
-- (none yet)
+- US spelling everywhere (rumor, color, gray, apologize, organized, theater, canceled).
+- Scaramouche is ungendered until the step-235 reveal: no he/she/him/her, and no "sir"/"ma'am" from underlings
+  (use "Scaramouche-sama", "At once.").
+- Ginji calls Yamamura オッチャン -> "Pops". Ban says "old man".
+- 奪還率 -> "success rate". No abbreviations in signs either ("Administration Department", not "Dept.").
+- Puns: rebuild the joke in English (a reviewer flags literal readings that lose the gag).
 
 ## Consistency
 Never edit `glossary.md`. For a recurring name or term not in it, pick a form, use it consistently, and report it.
