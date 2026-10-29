@@ -14,7 +14,7 @@ needs_rom = pytest.mark.skipif(not ROM.is_file(), reason="no ROM")
 def test_identity_build_is_byte_identical():
     import build
     orig = ROM.read_bytes()
-    rom, writes = build.build(orig)
+    rom, writes = build.build(orig, {}, engine=False)
     assert writes == [] and rom == orig
 
 

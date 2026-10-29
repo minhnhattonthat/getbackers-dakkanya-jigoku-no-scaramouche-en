@@ -25,6 +25,10 @@ PTR_SRC = ((0, START), (0x63000, 0x63E00), (0x64300, 0x68D00), (0x69100, 0x6A1C0
 def jp_table():
     """Every double-byte cp932 code that round-trips, `α` as {br} (line break / choice separator), the printf
     specifiers; other bytes decode as [XX]."""
+    return Table(jp_table_lines())
+
+
+def jp_table_lines():
     lines = ['83BF={br}', '2573=%s', '253364=%3d', '253664=%6d']
     for lead in [*range(0x81, 0xA0), *range(0xE0, 0xFD)]:
         for trail in [*range(0x40, 0x7F), *range(0x80, 0xFD)]:
@@ -35,7 +39,7 @@ def jp_table():
                 continue
             if c.encode('cp932') == b and c != '\\':
                 lines.append('%02X%02X=%s' % (lead, trail, c))
-    return Table(lines)
+    return lines
 
 
 @dataclass
@@ -92,7 +96,7 @@ def repack(rom, recs, texts, table=None, relocate=()):
     table = table or jp_table()
     writes, free = [], max(len(rom), ROM_END)
     for r in recs:
-        data = table.encode(texts.get(r.off, r.text)) + b'\0'
+        data = (table.encode(texts[r.off]) if r.off in texts else r.raw) + b'\0'
         if len(data) <= r.slot and r.off not in relocate:
             _write(rom, writes, r.off, data + bytes(max(0, len(r.raw) + 1 - len(data))), 'text %X' % r.off)
             continue

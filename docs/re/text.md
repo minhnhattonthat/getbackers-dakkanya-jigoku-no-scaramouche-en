@@ -36,6 +36,31 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
 - No half-width / ASCII glyphs in this font: English needs either full-width letters (12 px each, 20 per line) or
   new glyphs plus a VWF (phase 5 decision).
 
+## Draw paths and canvas - verified (code read + tests/test_vwf.py + in-game shots)
+- Every 12x12 glyph goes through 0x08019EF4(x_tile, y_tile, char ptr, subcol, [sp] canvas byte offset), the only
+  caller of the lookup 0x0801A1AC. Three callers:
+  - **A**: state 8 of the text task 0x0801A358 (call 0x0801A45A, canvas offset ctx+0x74);
+  - **B**: state 8 of the dialogue task (0x0801A724, call 0x0801A798, offset 0);
+  - **C**: 0x08002188 state machine, x positions from the u8 table 0x08063818, text from RAM (0x03000030 in the
+    intro); not hooked yet.
+- Canvas: RAM buffer at [0x03003D24], 0x2000 bytes = 32x8 tiles of 4bpp, tile = y*32 + x (32 bytes each),
+  colour 1; cleared by 0x0801A314 at every new text, copied to VRAM 0x0600E000 when 0x03002BA0+0x1A bit 0x80 is set.
+- Text ctx: +0x68 base x tile, +0x69 base y tile, +0x6A col, +0x6B row, +0x6C speed, +0x70 char pointer.
+  The game reads the char, waits, then adds 2 to the pointer and 1 to the col. New text: col = row = 0, speed 0xA.
+- Dialogue box (B): base (1, 1); only canvas y 8-41 is on the BG map (screen y 127-160), x 8-224 before the `▼`
+  prompt (screen x 227-237, last line). JP: 2 lines of 20 cells at 16 px pitch.
+
+## VWF (phase 5) - verified (tests/test_vwf.py, work/qa/torture)
+- `tools/vwf.py`: hooks A and B at state 8 (0x0801A3E6, 0x0801A724: 22/24 bytes, nothing else branches into them)
+  call `vwf_step` at 0x08400000 (Thumb, keystone; every instruction checked 16-bit). Bytes 0x20-0x7E and 0xA0-0xDF
+  (`—` 0xA0, `…` 0xA1) are English glyphs from `fonts/font_en.txt`, ORed into the canvas at any pixel x; a
+  Shift-JIS char still draws through the lookup as a 12 px glyph; `α` 0x83BF stays the line break.
+- Col (+0x6A) counts pixels, row (+0x6B) counts pixels: line pitch 11, text 1 px above the game's first line, so the
+  box holds 3 lines (ink rows 9-40 of the canvas). Auto-wrap when a glyph would pass x 224. The hook stores col + adv
+  - 1 and pointer + len - 2 because the game adds 1 and 2 after the wait.
+- English text in the ROM is 1 byte per char (`vwf.en_table()`: English bytes first, then the jp table); strings need
+  no alignment any more (the hook reads bytes).
+
 ## 8x8 system font - verified (VRAM dump + vramfind)
 - Raw 4bpp tiles at 0x2FA64-0x30E43 (inside the string block's data area): ASCII 0x21-0x7E (`¥` for `\`) and
   half-width katakana, loaded to BG char base 0xC000 on the 7NEWS screen (`work/qa/news/ppu_000450`). Who draws

@@ -5,5 +5,4 @@ per file; a font with no known licence doesn't go into a release.
 
 | File | Source (URL, version) | Licence | Redistributable in a patch | Used for | Changes made |
 |---|---|---|---|---|---|
-| <fonts/vwf_8px.png> | <drawn for this project> | <MIT, same as repo> | yes | <dialogue VWF> | <-> |
-| <fonts/Title.ttf> | <url, v1.2> | <OFL 1.1> | <yes, as rendered glyphs> | <typeset.py title cards> | <-> |
+| fonts/font_en.txt | drawn for the sibling project getbackers-dakkanya-jagan-fuuin (`tbl/font_en.txt`, same owner) | MIT, same as repo | yes | 12x12 text path VWF (tools/vwf.py): dialogue, path-A windows | none (copied as is) |

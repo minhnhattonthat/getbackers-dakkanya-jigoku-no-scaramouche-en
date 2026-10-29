@@ -80,7 +80,8 @@ def test_text_is_never_marked_data_silently(recs, script):
 
 
 def test_en_lint(script):
-    t = rom_text.jp_table()
+    import vwf
+    t = vwf.en_table()
     errs = []
     for e in script.values():
         en, jp = e["en"], e["jp"]
