@@ -58,10 +58,14 @@ Updated at the end of every session. Keep it to what the next session needs; his
   captions (palette -0x200 + tiles + map moved as one; park card checked in-game, the other 6 not yet seen), title
   subtitle "Scaramouche of Hell" + copyright (inpainted, checked in-game). Staff name readings not confirmed:
   田辺裕詞 Hiroshi, 鈴木謙子 Kenko, 中原郁奈子 Ikunako, 北上一三 Kazumi, 杉本憲英 Norihide (cards.EN 10-14).
-- **Next (phase 8):** remaining graphics rows in `docs/re/graphics.md` (item cards Z2CF684.., skill labels
-  Z2D2A24.., 7NEWS headline/captions, shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C, Z29D860 =
-  0x704C picture in the same layout); `text_tour.py` on the English build (`work/qa/tour_en`, run started),
-  `warp_all.py` (refresh states), visual QA chunks + `qa_gate.py`.
+  Item cards (24) and skill labels (44): sheets rewritten in place (`cards.SHEETS`), names from the script; not
+  yet seen in-game (the warped party has no items or skills). Non-blocking: the 雷帝降臨 label reads "Lightning
+  Emperor" (body 22 px: 2 lines; `cards.SHORT`, D4 last resort); Thunder-bolt/Thunder-clap hyphenated.
+  Z29D860 (0x704C) = KCE Japan logo, English.
+- **Next (phase 8):** 7NEWS headline strip + photo caption (tiles in no ROM block: trace the VRAM writer);
+  shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C; `warp_all.py` on the English build (the
+  states in `work/states/` are still the marker build's: intro_news shows marker text); `text_tour.py` on the
+  English build (`work/qa/tour_en`, run started before the graphics), visual QA chunks + `qa_gate.py`.
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
