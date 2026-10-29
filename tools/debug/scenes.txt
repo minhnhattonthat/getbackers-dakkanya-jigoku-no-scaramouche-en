@@ -1,0 +1,96 @@
+# Scene list for tools/debug/warp.lua and warp_all.py (docs/re/scenes.md).
+# name  step  mode  [route]
+#   step: story step 1-269 (tools/debug/director.py lists what each does); the director runs it from New Game.
+#   mode: game mode expected on arrival (hex): 8 act card, A field, B event, D battle (E once it starts),
+#         12 credits. warp_all.py fails an entry that arrives in another mode.
+#   route: played after arrival; "N buttons" steps, "@X" requests game mode X (F game over, 6 location card).
+# Any step without a name: SCENE='step:N'.
+
+# --- opening and act cards (each act enters through its own card, as in play) ---
+intro_news      1   B
+intro_office    2   B
+act1            3   8   120 -
+act2            55  8   120 -
+act3            98  8   120 -
+act4            123 8   120 -
+act5            184 8   120 -
+act6            209 8   120 -
+act7            242 8   120 -
+
+# --- first event and first field of each act ---
+act1_event      4   B
+act1_field      5   A
+act2_event      56  B
+act2_field      59  A
+act3_field      99  A
+act3_event      100 B
+act4_event      124 B
+act4_field      126 A
+act5_event      185 B
+act5_field      186 A
+act6_event      210 B
+act6_field      213 A
+act7_event      243 B
+act7_field      246 A
+last_event      268 B
+
+# --- every battle step (BTL id in the name) ---
+btl01  20  D
+btl02  22  D
+btl03  40  D
+btl04  49  D
+btl05  51  D
+btl06  80  D
+btl07  82  D
+btl08  92  D
+btl09  107 D
+btl0B  115 D
+btl0C  128 D
+btl0D  143 D
+btl0F  146 D
+btl0E  149 D
+btl10  159 D
+btl11  167 D
+btl12  178 D
+btl13  181 D
+btl14  187 D
+btl15  193 D
+btl16  197 D
+btl17  205 D
+btl18  215 D
+btl19  219 D
+btl1A  223 D
+btl1C  225 D
+btl1B  229 D
+btl1D  232 D
+btl1E  234 D
+btl1F  236 D
+btl21  250 D
+btl22  254 D
+btl23  259 D
+btl24  264 D
+btl25  267 D
+
+# --- battle command menu (first battle, after the intro) ---
+battle_menu     20  D   300 -
+
+# --- endings and credits ---
+credits_staff   240 12  1500 -
+ending          269 12  2400 -
+
+# --- field menu pages (Start in the field; cursor starts on ITEMS) ---
+menu            5   A   120 -;6 start;120 -
+menu_special    5   A   120 -;6 start;120 -;6 left;30 -;6 a;120 -
+menu_items      5   A   120 -;6 start;120 -;6 a;120 -
+menu_change     5   A   120 -;6 start;120 -;6 right;30 -;6 a;120 -
+menu_enemies    5   A   120 -;6 start;120 -;6 right;30 -;6 right;30 -;6 a;120 -
+menu_save       5   A   120 -;6 start;120 -;6 right;30 -;6 right;30 -;6 right;30 -;6 a;120 -
+
+# --- screens with no story step: requested directly ---
+game_over       5   A   60 -;@F;300 -
+location_card   5   A   60 -;@6;240 -
+field_grid      5   A   60 -;@10;240 -
+field_screen11  5   A   60 -;@11;240 -
+
+# --- save in the field (makes the CONTINUE fixture: run with emu.py --sav work/saves/blank.sav) ---
+save_done       5   A   120 -;6 start;120 -;6 right;30 -;6 right;30 -;6 right;30 -;6 a;120 -;6 up;30 -;6 a;400 -

@@ -1,0 +1,6 @@
+# title menu with a save (needs --sav work/saves/act1_field.sav, made by warp scene save_done): cursor starts on CONTINUE
+600 -
+6 start
+120 -
+6 a
+460 -
