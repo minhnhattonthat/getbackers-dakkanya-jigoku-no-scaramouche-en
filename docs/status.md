@@ -64,8 +64,15 @@ Updated at the end of every session. Keep it to what the next session needs; his
   `cards.SHORT`, D4 last resort); Thunder-bolt/Thunder-clap hyphenated. 7NEWS headline + caption in English
   (seen, step 1). Z29D860 (0x704C) = KCE Japan logo, English. `warp_all.py` on the English build: 73/73 ok
   (`work/states/` now English).
-- **Next (phase 8):** shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C; `text_tour.py` on the
-  English build (`work/qa/tour_en`), visual QA chunks + `qa_gate.py`.
+  Last graphics rows closed: field signposts Z11C08C -> PET/ZOO, BIRD/PARK and Ginji's sheet Z1ABD44 はい/いいえ ->
+  Yes/No (static: no screen found by `tools/debug/gfxscan.py` over 54 field maps + 36 battles), Z314590 texture,
+  Z2C441C unused. Text tour on the English build (`work/qa/tour_en`): 147 event steps (B 1832 entries seen) +
+  battle steps 20-149; the run for battles 152-267 was stopped by the harness for low memory (rerun:
+  `text_tour.py build/getbackers_en.gba --jobs 2 --out work/qa/tour_en --scenes step:152 step:159 ...`, then
+  `--logs-only`). Sheets: `sheet.py DIR --changed 0.02 --div 1 --max 16 --cols 4` per scene + `zz_gfx/` proofs;
+  `work/qa/manifest.tsv` 324 sheets, 11 chunks (`work/qa/chunks`), verdicts in `work/qa/verdicts`. No `tour_jp`.
+- **Next (phase 8):** visual-QA verdicts for all 11 chunks, fix issues, `qa_gate.py check` exit 0; battles 152-267
+  tour; then phase 9 (release).
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
