@@ -12,7 +12,7 @@ Addresses are for the dump in `rom.sha1` unless a note says otherwise.
 
 | File | Covers | State |
 |---|---|---|
-| [text.md](text.md) | Shift-JIS encoding, line break, dialogue box, 12x12 font, 8x8 font, string block, pointers | verified; printf callers and the `α` menu labels open |
+| [text.md](text.md) | Shift-JIS encoding, line break, draw paths A/B/C, canvas, VWF, windows (width gate), fonts, string block, pointers | verified; yes/no and item windows a guess |
 | [rom-map.md](rom-map.md) | ROM layout, LZ77, free space | mostly verified; 0x3E8000-0x3EB7E0 and free space untested |
 | [scenes.md](scenes.md) | game modes, story director (269 steps), warp tool | verified; save-dependent title entries open |
 | [graphics.md](graphics.md) | graphics-text survey (static sweep + tour) | static sweep done; tour limited to boot/intro until the debug tool |

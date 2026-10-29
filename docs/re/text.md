@@ -41,8 +41,14 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
   caller of the lookup 0x0801A1AC. Three callers:
   - **A**: state 8 of the text task 0x0801A358 (call 0x0801A45A, canvas offset ctx+0x74);
   - **B**: state 8 of the dialogue task (0x0801A724, call 0x0801A798, offset 0);
-  - **C**: 0x08002188 state machine, x positions from the u8 table 0x08063818, text from RAM (0x03000030 in the
-    intro); not hooked yet.
+  - **C**: the help/message bar: 0x080022A8(task, x, y, text) opens a 30x4 window at (1, 0x12) and strncpy's
+    0x30 bytes of text into 0x03000030; the task 0x08002188 draws it at x = u8 table 0x08063818[i], one 12 px cell
+    per tick (title help, field menu help, battle help, level-up and other sprintf'd messages).
+- Who opens what: B = event scripts (0x0801F3B0 -> 0x0801A978, window (0, 0x10, 32x4)); A = field box
+  (0x080200FC -> 0x0801FD98, window 32x4 at y 1 or 15 by the player's y; talk, examine, and `“X”を見つけた。` /
+  `“X”はもう持ちきれない。` built by strcpy/strcat into the 64-byte buffer 0x030000B8 from 0x08030F4C + item name
+  table 0x08097928 + 0x08030F50/0x08030F60) and the yes/no window (0x080201BC, 6x4 tiles at (23, 8), script
+  0x0806AEDC = 0x30F28 `はい{br}いいえ`, canvas offset 0x1000).
 - Canvas: RAM buffer at [0x03003D24], 0x2000 bytes = 32x8 tiles of 4bpp, tile = y*32 + x (32 bytes each),
   colour 1; cleared by 0x0801A314 at every new text, copied to VRAM 0x0600E000 when 0x03002BA0+0x1A bit 0x80 is set.
 - Text ctx: +0x68 base x tile, +0x69 base y tile, +0x6A col, +0x6B row, +0x6C speed, +0x70 char pointer.
@@ -51,13 +57,28 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
   prompt (screen x 227-237, last line). JP: 2 lines of 20 cells at 16 px pitch.
 
 ## VWF (phase 5) - verified (tests/test_vwf.py, work/qa/torture)
-- `tools/vwf.py`: hooks A and B at state 8 (0x0801A3E6, 0x0801A724: 22/24 bytes, nothing else branches into them)
-  call `vwf_step` at 0x08400000 (Thumb, keystone; every instruction checked 16-bit). Bytes 0x20-0x7E and 0xA0-0xDF
+- `tools/vwf.py`: hooks A and B at state 8 (0x0801A3E6, 0x0801A724, ~38 bytes each, nothing else branches into
+  them) call `vwf_step` at 0x08400000 (Thumb, keystone; every instruction checked 16-bit). Bytes 0x20-0x7E and 0xA0-0xDF
   (`—` 0xA0, `…` 0xA1) are English glyphs from `fonts/font_en.txt`, ORed into the canvas at any pixel x; a
   Shift-JIS char still draws through the lookup as a 12 px glyph; `α` 0x83BF stays the line break.
 - Col (+0x6A) counts pixels, row (+0x6B) counts pixels: line pitch 11, text 1 px above the game's first line, so the
   box holds 3 lines (ink rows 9-40 of the canvas). Auto-wrap when a glyph would pass x 224. The hook stores col + adv
-  - 1 and pointer + len - 2 because the game adds 1 and 2 after the wait.
+  - 1 and pointer + len - 2 because the game adds 1 and 2 after the wait. Hook A picks pitch 11 for canvas offset 0
+  (field box) and the JP 16 px for offset 0x1000 (yes/no: its cursor steps 16 px).
+- Path C: `vwf_c` (entry CODE+4, hook 0x08002208 replaces the draw + end/break check): col +0x64 in px, y +0x65 in
+  tiles, pointer +0x6C; stops drawing past x 232; line break and end as the game did them.
+- Tests: `tests/test_vwf.py` runs vwf_step/vwf_c in unicorn on the built ROM (glyph rows land where the font says,
+  wrap, break, end, Shift-JIS fallback) and checks no branch or code pointer lands inside a hook.
+
+## Windows (width gate) - `tools/windows.py`, lint in tests/test_script.py
+| Window | Budget | Entries | Measured |
+|---|---|---|---|
+| box (B dialogue, A field) | 3 lines x 216 px (x 8-224) | ~4900 | work/qa/torture, v_a1e (B); work/qa/fieldwalk (A, top and bottom box) |
+| help (C) | 1 line x 232 px, <= 47 bytes after printf | ~395 | work/qa/title_c, m_menu_change, v_btl |
+| choice | 2 lines x 40 px | 1 (0x30F28) | guess (window size from code); see it in phase 8 |
+| item | 1 line x 232 px, <= 40 bytes | ~39 (table 0x97xxx) | guess: help line + 64-byte found/full message |
+Assignment by pointer location (help: code literals, tables 0x63000-0x65FFF, 0x68000-0x68FFF; item: 0x97000+); a
+guess for menus not toured yet (ENEMIES bios, battle quips). `%s` counts as 8 W's (a name) in the lint.
 - English text in the ROM is 1 byte per char (`vwf.en_table()`: English bytes first, then the jp table); strings need
   no alignment any more (the hook reads bytes).
 

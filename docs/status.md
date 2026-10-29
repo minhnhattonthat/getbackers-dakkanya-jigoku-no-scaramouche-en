@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 4 (extract) done; next is phase 5 (engine spike + marker build).
+- **Phase:** 5 (engine spike + marker build) done; next is phase 6 (translate).
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -22,11 +22,23 @@ Updated at the end of every session. Keep it to what the next session needs; his
   into padding shrink the owner's slot. `tests/test_script.py`: roundtrip, script == ROM, coverage, pointer targets,
   data never silent, en lint (encodable, printf order, leading/trailing blanks), build applies en, re-dump keeps en.
   Details: `docs/re/text.md` §Script.
-- **Next:** phase 5: font/VWF decision (12x12 SJIS font has no Latin half-width glyphs; 8x8 ASCII font exists at
-  0x2FA64; box = 20 x 12 px cells x 2 lines), English encoding in the table (en currently must be cp932-encodable),
-  marker build (`[id]` per string), find non-text strings, measure every box variant's width. Check how menus /
-  battle / name tables draw text (other draw paths than 0x08019EF4?) and the printf callers.
+- **Done (phase 5):** VWF engine `tools/vwf.py` (Thumb at 0x08400000, keystone, MIT `fonts/font_en.txt` from the
+  sibling repo): all three 12x12 draw paths hooked (A field box + yes/no, B event dialogue, C help bar). English =
+  1 byte per char (`vwf.en_table()`), Shift-JIS still drawn, `{br}` kept. Dialogue and field boxes now hold 3 lines
+  x 216 px (11 px pitch); help bar 1 line x 232 px / 47 bytes; yes/no keeps 16 px pitch. Width gate:
+  `tools/windows.py` (budgets + entry -> window by pointer location) checked by the en lint. Marker build
+  `tools/build.py --marker` (+ `--qa ID=TEXT` overrides): boots, 73/73 warps ok, every box shows `#id`; torture line
+  (all glyphs) ok. `jp_left.py --gba-ptrs` on it: nothing missed (only the known 0x6AF14 and a byte-table hit).
+  Text tour: `tools/debug/text_tour.py` + `textlog.lua` (which entries each path shows, per event step).
+  Tests: `tests/test_vwf.py` (unicorn), marker-fills-window, hook branch-target check. Details: `docs/re/text.md`.
+- **Next:** phase 6 (translate): translator brief + glossary, batches by window (`windows.window_of`), budgets
+  from `tools/windows.py` (box: 3 x 216 px; help: 1 x 232 px; names/items short). Write `{br}` breaks by
+  `vwf.width` (the hook only auto-wraps mid-word as a fallback).
 - **Open (not blocking):**
+  - Windows still a guess (tools/windows.py): yes/no (0x30F28, 6-tile window), item names in the field found/full
+    message, ENEMIES menu names/bios and battle quips (tables 0x65000/0x68000, assumed help bar). Tour them in
+    phase 8 (warped party has no items/enemy log).
+  - `work/states/*.mss` were last made from the marker build: rerun `warp_all.py` on the English build.
   - Title entries bonus stage / boss retry: conditions unknown (cleared game, lost boss?); modes 0x10/0x11 are
     reached by a mode request, not their real field exit (find a map exit with target 0xEF/0xF0/0xFA-0xFD).
   - Warped party is a new game's (Ginji only, level 1): no GOD/NOENC yet (no HP address); add if a QA route dies.
