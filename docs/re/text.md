@@ -54,3 +54,12 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
 - One pointer aims mid-string (0x2DBBC `た`, tail of 0x2DBA8) - check before relying on it; may be a coincidental
   value.
 - The full scan script: `python -X utf8 tools/textscan.py` (string list with reference counts).
+
+## Repack (identity build) - verified (tests/test_build.py)
+- `tools/rom_text.py`: `unpack` -> 6139 records (slot = record start to next record start; data records with
+  bytes after their first NUL, e.g. 0x2F624, 0x2FA8C-0x2FB48, own only text + NUL), text through an in-code cp932
+  table (unknown bytes `[XX]`); `repack` writes in place when it fits, else at 0x400000+ with every pointer
+  rewritten. `tools/build.py` with no edits = byte-identical ROM (0 writes).
+- Repoint uses every 4-aligned u32 in the ROM equal to `0x08000000|record`: a coincidental data word would be
+  rewritten too. Phase 4: restrict to the decoded pointer tables + code literal pools if a moved string breaks
+  something.

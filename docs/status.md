@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 2 (debug tool) done; next is phase 3 (identity build). No build yet.
+- **Phase:** 3 (identity build) done; next is phase 4 (extract to `script/`).
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -13,7 +13,12 @@ Updated at the end of every session. Keep it to what the next session needs; his
   pages, save, game over, location card, modes 0x10/0x11); `tools/debug/warp_all.py` warps all of them from a cold
   boot with a proof shot and `work/states/<name>.mss` (last run: all ok, `work/qa/warp_all/sheet*.png`). Title
   CONTINUE: `tools/routes/title_continue.txt` + `--sav work/saves/act1_field.sav` (made by warp_all).
-- **Next:** phase 3: identity build (`tools/build.py` unpack + repack with no edits = byte-identical, as a test).
+- **Done (phase 3):** `tools/build.py` (rom.sha1 check, `tools/rom_text.py` unpack + repack of the string block,
+  romdiff write-log check, `build/writes.txt`) gives a byte-identical ROM with no edits
+  (`tests/test_build.py`, also relocation-to-0x400000 + repoint and in-place shorter-text tests). Smoke ok.
+- **Next:** phase 4: dump `script/` (JSON per block, `id`/`ptrs`/`jp`/`en`/`max`/`status`, dump never clobbers
+  `en`), mark data records (0x2F624, 0x2FA84-0x2FB48 ...) as `data`, roundtrip + coverage tests; build reads `en`.
+  Decide `α` (0x83BF) as a `{br}` control vs literal (menu labels 0x2F0C0/0x2F0E0).
 - **Open (not blocking):**
   - Title entries bonus stage / boss retry: conditions unknown (cleared game, lost boss?); modes 0x10/0x11 are
     reached by a mode request, not their real field exit (find a map exit with target 0xEF/0xF0/0xFA-0xFD).
