@@ -23,7 +23,8 @@ MAX_ROM = 0x2000000     # GBA cartridge address space: 32 MiB
 def allowed():
     """[(start, end)] the build may write: the string block, the VWF hook sites, and everything past the original ROM
     end (VWF code + font, relocated text). Pointer words are allowed one by one (outside)."""
-    return [(rom_text.START, rom_text.END), (rom_text.ROM_END, MAX_ROM), *((s, s + max(len(old), len(new))) for s, old, new in vwf.hooks())]
+    return [(rom_text.START, rom_text.END), (rom_text.ROM_END, MAX_ROM), *cards.sheet_ranges(),
+            *((s, s + max(len(old), len(new))) for s, old, new in vwf.hooks())]
 
 
 def outside(writes, slots=frozenset()):

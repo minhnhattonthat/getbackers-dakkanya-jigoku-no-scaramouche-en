@@ -9,11 +9,13 @@ from pathlib import Path
 
 from PIL import Image
 
+import extract
 import letter
 import lzcomp
 import lzscan
 import rom_text
 
+ROM = Path(__file__).resolve().parents[1] / 'rom' / 'GetBackers Dakkanya - Jigoku no Scaramouche (Japan).gba'
 COUNT = 26
 W, H = 32, 20                   # map tiles
 STYLE = {'role': (1, 1, 0, 0), 'name': (1, 1, 1, 0), 'head': (1, 2, 1, 1), 'title': (2, 2, 1, 1)}  # sx, sy, bold, track
@@ -161,6 +163,7 @@ def apply(rom, writes):
             rom_text._write(rom, writes, off, data, 'card %d %s' % (i, ('tiles', 'map')[k]))
             rom_text._write(rom, writes, slot(i) + 4 * k, struct.pack('<I', 0x08000000 + off), 'card %d ptr' % i)
     loc_apply(rom, writes)
+    sheet_apply(rom, writes)
 
 
 def pointer_words():
@@ -245,6 +248,116 @@ def title_english(rom):
 
 
 LOC_PICS = {TITLE: title_english}       # other pictures in the location card layout, redrawn by their function
+
+
+# --- item cards and skill-name labels: 4bpp sprite sheets (32 tiles wide, 16 rows), 64x32 cards in slot order ---
+# Each sheet keeps blank cards of its card shapes after its names; a card is cleared by copying the blank of the
+# same shape and its name redrawn in the blank's inner area. Item sheets are reached by pointers, the skill sheets
+# by a table the build doesn't know, so a sheet is rewritten in place (it must not grow past its old size).
+ITEMS = [['Recovery Juice (S)', 'Recovery Juice (M)', 'Recovery Juice (L)', "Gen's Special Drink", 'Ginseng Extract',
+          'Peony Extract', 'Hamburger', 'Big Burger'],
+         ['Poison Cure', 'Paralysis Cure', 'Stabilizer', 'All Cure', 'Neutralizer', 'Spider Lily Powder',
+          'Tiger Lily Bulb', 'Horai Jewel'],
+         ['Fury Pill', 'Hardening Powder', 'Gale Pill', 'Sharp Tonic', 'Decline Pill', 'Slack Powder', 'Slow Pill',
+          'Dull Tonic']]
+SKILL_JP = ['蛇咬', 'プラズマ', '解毒香', '猫擬', '絃結界', '赤い雨']    # first label of each skill sheet
+SHEETS = [0x2CF684, 0x2D0718, 0x2D1878, 0x2D2A24, 0x2D3928, 0x2D49F0, 0x2D5BCC, 0x2D6D74, 0x2D8074]
+
+
+def sheet_names(script, k):
+    """English names on sheet k: items from ITEMS, skills = the script's names from the first one, address down."""
+    if k < 3:
+        return ITEMS[k]
+    es = sorted((e for e in script.values() if e['jp']), key=lambda e: -int(e['id'], 16))
+    i = next(i for i, e in enumerate(es) if e['jp'] == SKILL_JP[k - 3])
+    names = []
+    for e in es[i:]:
+        if '：' in e['jp'] or len(names) == 8 or (names and e['jp'] in SKILL_JP):
+            break
+        names.append(SHORT.get(e['en'], e['en']))
+    return names
+
+
+def card_px(px, n):
+    return [r[n % 4 * 64:n % 4 * 64 + 64] for r in px[n // 4 * 32:n // 4 * 32 + 32]]
+
+
+def sheet_english(rom, off, names):
+    tiles = lzscan.lz77(rom, off)[0]
+    px = [[0] * 256 for _ in range(128)]
+    for k in range(512):
+        for y, row in enumerate(tile_px(tiles, k)):
+            px[k // 32 * 8 + y][k % 32 * 8:k % 32 * 8 + 8] = row
+    # blanks: slots after the names holding a card (centre not transparent) of 5-8 colours (text makes 13-14)
+    blanks = [n for n in range(len(names), 16)
+              if 5 <= len({v for r in card_px(px, n) for v in r}) <= 8 and card_px(px, n)[16][32] != 0]
+    assert blanks, 'sheet %X: no blank card' % off
+    for n, name in enumerate(names):
+        card = card_px(px, n)
+        b = min(blanks, key=lambda m: sum(a != c for ra, rc in zip(card, card_px(px, m)) for a, c in zip(ra, rc)))
+        blank = card_px(px, b)
+        fill = max({v for r in blank for v in r}, key=lambda c: sum(r.count(c) for r in blank))
+        ink = max((v for ra, rb in zip(card, blank) for v, w in zip(ra, rb) if v != w and v != fill),
+                  key=lambda c: sum(r.count(c) for r in card))
+        rows = [y for y in range(32) if blank[y].count(fill) >= 20]
+        cols = [x for x in range(64) if blank[rows[len(rows) // 2]][x] == fill]
+        y0, y1 = rows[0], rows[-1] + 1
+        lines = fit(name, cols[-1] - cols[0] - 1, (y1 - y0 + 1) // PITCH)
+        for y in range(32):
+            px[n // 4 * 32 + y][n % 4 * 64:n % 4 * 64 + 64] = blank[y]
+        def spans(top):
+            # per line: the columns that are fill on every row its cell covers (a notch narrows them)
+            out = []
+            for i, line in enumerate(lines):
+                band = range(max(y0, top + PITCH * i), min(y1, top + PITCH * i + 11))
+                s = [x for x in range(64) if all(blank[y][x] == fill for y in band)]
+                out.append(s if s and s[-1] - s[0] + 1 >= letter.width(line) else None)
+            return out
+        mid = y0 + (y1 - y0 - PITCH * len(lines) + 1) // 2 - 1
+        top = min((t for t in range(y0 - 1, y1 - PITCH * len(lines) + 1) if all(spans(t))), key=lambda t: abs(t - mid))
+        for i, (line, s) in enumerate(zip(lines, spans(top))):
+            letter.draw(px, line, n % 4 * 64 + (s[0] + s[-1] + 1) // 2, n // 4 * 32 + top + PITCH * i, ink,
+                        lo=n % 4 * 64 + s[0], hi=n % 4 * 64 + s[-1] + 1)
+    return px
+
+
+PITCH = 9                       # label line pitch: 8 px capitals + 1
+HYPHEN = {'Thunderbolt': 'Thunder- bolt', 'Thunderclap': 'Thunder- clap'}     # words wider than a label
+# D4 last resort, flagged in docs/status.md: the label body is 22 px tall, 2 lines; the menus keep the full name
+SHORT = {'Lightning Emperor Descends': 'Lightning Emperor'}
+
+
+def fit(text, width, nmax):
+    """Greedy word wrap to lines of at most width px; fails past nmax lines."""
+    lines = []
+    for w in ' '.join(HYPHEN.get(w, w) for w in text.split(' ')).split(' '):
+        if lines and not lines[-1].endswith('-') and letter.width(lines[-1] + ' ' + w) <= width:
+            lines[-1] += ' ' + w
+        else:
+            lines.append(w)
+    assert len(lines) <= nmax and all(letter.width(l) <= width for l in lines), '%r does not fit %d px x %d' % (
+        text, width, nmax)
+    return lines
+
+
+def sheet_tiles(px):
+    return bytes(px[k // 32 * 8 + y][k % 32 * 8 + x] | px[k // 32 * 8 + y][k % 32 * 8 + x + 1] << 4
+                 for k in range(512) for y in range(8) for x in range(0, 8, 2))
+
+
+def sheet_apply(rom, writes):
+    script = extract.load()             # the stored names, also in a marker build
+    for k, off in enumerate(SHEETS):
+        data = lzcomp.compress(sheet_tiles(sheet_english(rom, off, sheet_names(script, k))))
+        old = (lzscan.lz77(rom, off)[1] + 3) & ~3
+        assert len(data) <= old, 'sheet %X: %d bytes > %d' % (off, len(data), old)
+        rom_text._write(rom, writes, off, data + bytes(old - len(data)), 'sheet %X' % off)
+
+
+def sheet_ranges():
+    """[(start, end)] of the sheets' LZ77 blocks in the original ROM (build.allowed)."""
+    rom = ROM.read_bytes()
+    return [(off, off + ((lzscan.lz77(rom, off)[1] + 3) & ~3)) for off in SHEETS]
 
 
 def loc_apply(rom, writes):
