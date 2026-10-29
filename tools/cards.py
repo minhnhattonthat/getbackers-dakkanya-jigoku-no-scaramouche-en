@@ -72,9 +72,9 @@ def entry(rom, i):
     return tuple(p - 0x08000000 for p in struct.unpack_from('<3I', rom, slot(i)))
 
 
-def palette(rom, off):
+def palette(rom, off, n=16):
     return [((c & 31) * 255 // 31, (c >> 5 & 31) * 255 // 31, (c >> 10 & 31) * 255 // 31)
-            for c in struct.unpack_from('<16H', rom, off)]
+            for c in struct.unpack_from('<%dH' % n, rom, off)]
 
 
 def load(rom, i):
@@ -84,28 +84,31 @@ def load(rom, i):
     return tiles, mp, palette(rom, p)
 
 
-def tile_px(tiles, n):
-    """8x8 colour indices of 4bpp tile n."""
+def tile_px(tiles, n, bpp=4):
+    """8x8 colour indices of tile n."""
+    if bpp == 8:
+        return [list(tiles[64 * n + 8 * y:64 * n + 8 * y + 8]) for y in range(8)]
     b = tiles[32 * n:32 * n + 32]
     return [[(b[y * 4 + x // 2] >> (4 * (x & 1))) & 15 for x in range(8)] for y in range(8)]
 
 
-def to_pixels(tiles, mp):
+def to_pixels(tiles, mp, bpp=4):
     """256x160 rows of colour indices (map flips applied; palette bank must be 0)."""
     px = [[0] * (W * 8) for _ in range(H * 8)]
     for k, e in enumerate(mp):
         assert e >> 12 == 0, 'palette bank %d' % (e >> 12)
-        t = tile_px(tiles, e & 0x3FF)
+        t = tile_px(tiles, e & 0x3FF, bpp)
         for y in range(8):
             for x in range(8):
                 px[k // W * 8 + y][k % W * 8 + x] = t[7 - y if e & 0x800 else y][7 - x if e & 0x400 else x]
     return px
 
 
-def from_pixels(px):
-    """(tiles, map) for 256x160 indices: tile 0 blank, duplicates (also flipped ones) shared."""
-    seen, tiles, mp = {}, bytearray(32), []
-    seen[bytes(64)] = 0
+def from_pixels(px, bpp=4, first=None):
+    """(tiles, map) for 256x160 indices: tile 0 = first (default blank), duplicates (also flipped ones) shared."""
+    first = first or bytes(64)
+    seen, tiles, mp = {first: 0}, bytearray(first if bpp == 8 else
+                                            bytes(first[i] | first[i + 1] << 4 for i in range(0, 64, 2))), []
     for k in range(W * H):
         rows = [px[k // W * 8 + y][k % W * 8:k % W * 8 + 8] for y in range(8)]
         e = None
@@ -116,10 +119,11 @@ def from_pixels(px):
                 e = seen[key] | flip
                 break
         if e is None:
-            n = len(tiles) // 32
+            n = len(tiles) // (8 * bpp)
             assert n < 1024, 'too many tiles'
             seen[bytes(v for r in rows for v in r)] = n
-            tiles += bytes(r[x] | r[x + 1] << 4 for r in rows for x in range(0, 8, 2))
+            tiles += bytes(v for r in rows for v in r) if bpp == 8 else \
+                bytes(r[x] | r[x + 1] << 4 for r in rows for x in range(0, 8, 2))
             e = n
         mp.append(e)
     return bytes(tiles), mp
@@ -156,11 +160,67 @@ def apply(rom, writes):
             off = (len(rom) + 3) & ~3
             rom_text._write(rom, writes, off, data, 'card %d %s' % (i, ('tiles', 'map')[k]))
             rom_text._write(rom, writes, slot(i) + 4 * k, struct.pack('<I', 0x08000000 + off), 'card %d ptr' % i)
+    loc_apply(rom, writes)
 
 
 def pointer_words():
     """ROM offsets of the pointer words apply() may rewrite (build.py allows these single words)."""
-    return {slot(i) + 4 * k for i in EN for k in (0, 1)}
+    return {slot(i) + 4 * k for i in EN for k in (0, 1)} | set(LOC)
+
+
+# --- location cards ---------------------------------------------------------------------------------------------
+# [256 colours BGR555][8bpp tiles LZ77, pixels 0-127][its 32x20 map LZ77 at align4(end of tiles)]: the code (0x196C0)
+# loads the tiles pointer from a literal (the key), copies the palette from 0x200 before it (the park card's pixels
+# land on the upper 128 colours, the others' on the lower), and finds the map at a fixed distance after the tiles (a
+# literal or an immediate), so a moved card keeps that whole layout. The caption is map rows 16-17, columns 0-9
+# (80x16 px); the English one also takes row 18 (blank before, on screen): two 8 px lines, all caps.
+# HONKY TONK (0x19678) is English already.
+LOC = {0x196A8: ['SAZANAMI', 'CORPORATION'], 0x19698: ['URA-TOCHO'], 0x19658: ['URA-SHINJUKU', 'CENTRAL PARK'],
+       0x1966C: ['HARAGURO', "BOSS'S MANSION"], 0x19688: ['URA-SHINJUKU', 'WEST HOSPITAL'],
+       0x196B4: ["KIMOJI'S", 'PET SHOP'], 0x19718: ['URA-SHINJUKU', 'STATION']}
+CAP = (128, 144, 0, 80)         # JP caption y0, y1, x0, x1; the English one ends at y1 + 8
+
+
+def loc_load(rom, p):
+    """(tiles offset, map offset, tiles, map) of the location card whose tiles pointer is at p."""
+    t = struct.unpack_from('<I', rom, p)[0] - 0x08000000
+    tiles, n = lzscan.lz77(rom, t)
+    m = (t + n + 3) & ~3
+    return t, m, tiles, list(struct.unpack('<%dH' % (W * H), lzscan.lz77(rom, m)[0]))
+
+
+def loc_palette(rom, p):
+    """The 128 colours the card's pixels use: the upper half of its palette, or the lower when the upper is flat."""
+    t = struct.unpack_from('<I', rom, p)[0] - 0x08000000
+    up = palette(rom, t - 0x100, 128)
+    return up if len(set(up)) > 1 else palette(rom, t - 0x200, 128)
+
+
+def loc_english(rom, p):
+    _, _, tiles, mp = loc_load(rom, p)
+    px, pal = to_pixels(tiles, mp, 8), loc_palette(rom, p)
+    y0, y1, x0, x1 = CAP
+    cap = [v for r in px[y0:y1] for v in r[x0:x1]]
+    bg = max(set(cap), key=cap.count)
+    ink = max(set(cap) - {0}, key=lambda c: sum(pal[c]))   # the caption's brightest colour (0 is transparent)
+    assert all(e == 0 for e in mp[18 * W:18 * W + 10]), 'map row 18 is not blank'
+    for y in range(y0, y1 + 8):
+        px[y][x0:x1] = [bg] * (x1 - x0)
+    lines = LOC[p]
+    for k, text in enumerate(lines):
+        letter.draw(px, text, (x0 + x1) // 2, y0 + (11 * k if len(lines) == 2 else 6), ink, lo=x0, hi=x1)
+    return px
+
+
+def loc_apply(rom, writes):
+    for p in sorted(LOC):
+        t, m, tiles, _ = loc_load(rom, p)
+        nt, nm = pack(*from_pixels(loc_english(rom, p), 8, tiles[:64]))
+        assert len(nt) <= m - t, 'location card %X: tiles grew past the map distance' % p
+        off = ((len(rom) + 3) & ~3) + 0x200
+        rom_text._write(rom, writes, off - 0x200, rom[t - 0x200:t] + nt + bytes(m - t - len(nt)) + nm,
+                        'location card %X' % p)
+        rom_text._write(rom, writes, p, struct.pack('<I', 0x08000000 + off), 'location card ptr %X' % p)
 
 
 def main():
