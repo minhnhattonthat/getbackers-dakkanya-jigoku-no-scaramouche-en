@@ -165,7 +165,7 @@ def apply(rom, writes):
 
 def pointer_words():
     """ROM offsets of the pointer words apply() may rewrite (build.py allows these single words)."""
-    return {slot(i) + 4 * k for i in EN for k in (0, 1)} | set(LOC)
+    return {slot(i) + 4 * k for i in EN for k in (0, 1)} | set(LOC) | set(LOC_PICS)
 
 
 # --- location cards ---------------------------------------------------------------------------------------------
@@ -212,10 +212,45 @@ def loc_english(rom, p):
     return px
 
 
+def inpaint(px, mask, top=0):
+    """Fill each masked pixel from the nearest unmasked one in its column (above, but not above row top, or below)."""
+    for x, y in sorted(mask):
+        up = next((y - k for k in range(1, 40) if (x, y - k) not in mask and y - k >= top), None)
+        dn = next((y + k for k in range(1, 40) if (x, y + k) not in mask), None)
+        src = up if dn is None or (up is not None and y - up <= dn - y) else dn
+        px[y][x] = px[src][x]
+
+
+# --- title screen: same layout as a location card (tiles pointer 0x70D0, palette at -0x200, map at +0x6574) ------
+TITLE = 0x70D0
+SUB = (30, 214, 68, 86)         # x0, x1, y0, y1 of the 地獄のスカラムーシュ lettering (white 83 outline, dark fill)
+CPR = ((33, 210, 133, 146), (33, 126, 146, 159))      # x0, x1, y0, y1 of the two copyright lines
+WHITE, DARK, LIGHT = 83, 253, 31
+
+
+def title_english(rom):
+    _, _, tiles, mp = loc_load(rom, TITLE)
+    px = to_pixels(tiles, mp, 8)
+    x0, x1, y0, y1 = SUB
+    white = {(x, y) for y in range(y0, y1) for x in range(x0, x1) if px[y][x] == WHITE}
+    mask = {(x + i, y + j) for x, y in white for i in range(-3, 4) for j in range(-3, 4)
+            if y0 - 1 <= y + j < y1 + 2}
+    inpaint(px, mask, y0)           # nothing from the logo above
+    letter.draw(px, 'Scaramouche of Hell', 120, 67, DARK, 2, 2, 1, outline=WHITE)
+    # the two (anti-aliased) copyright lines over the art: filled from the art above and below, redrawn
+    inpaint(px, {(x, y) for x0, x1, y0, y1 in CPR for y in range(y0, y1) for x in range(x0, x1)})
+    letter.draw(px, '(C) 2001 Yuya Aoki/Rando Ayamine/Kodansha', 120, 132, LIGHT, outline=DARK)
+    letter.draw(px, '(C) 2001 KONAMI', 38 + letter.width('(C) 2001 KONAMI') // 2, 146, LIGHT, outline=DARK)
+    return px
+
+
+LOC_PICS = {TITLE: title_english}       # other pictures in the location card layout, redrawn by their function
+
+
 def loc_apply(rom, writes):
-    for p in sorted(LOC):
+    for p in sorted(LOC) + sorted(LOC_PICS):
         t, m, tiles, _ = loc_load(rom, p)
-        nt, nm = pack(*from_pixels(loc_english(rom, p), 8, tiles[:64]))
+        nt, nm = pack(*from_pixels(LOC_PICS[p](rom) if p in LOC_PICS else loc_english(rom, p), 8, tiles[:64]))
         assert len(nt) <= m - t, 'location card %X: tiles grew past the map distance' % p
         off = ((len(rom) + 3) & ~3) + 0x200
         rom_text._write(rom, writes, off - 0x200, rom[t - 0x200:t] + nt + bytes(m - t - len(nt)) + nm,

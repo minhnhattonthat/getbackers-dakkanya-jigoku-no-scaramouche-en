@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 7 (insert, fit, check) done; next is phase 8 (QA in the emulator).
+- **Phase:** 8 (QA in the emulator) in progress.
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -50,8 +50,18 @@ Updated at the end of every session. Keep it to what the next session needs; his
   stub last lines, no empty en). Balanced box wrap (`batches.wrap` DP; `batches.py rewrap` re-wrapped 1363
   entries, 125 stubs gone). Details: `docs/re/text.md` §Insert checks. Check 32 passed; smoke ok
   (sha1 aaf24002...); step 4 warp draws the opening line.
-- **Next:** phase 8 tours: `text_tour.py` on the English build, `warp_all.py` (refreshes `work/states/` from the
-  English build), visual QA chunks + `qa_gate.py`, graphics-text rows.
+- **Phase 6 review fixes (2026-10-30):** the batch check / stored lint now require every glossary term's EN form
+  (`batches.has_term`, neighbour pages via `near_text`, `Label`/`Loose` glossary notes, one-offs in `GLOSS_OK`);
+  Ban's オッチャン = "old man" (5 lines), Paro in caps (7 lines), ハンバーガー = hamburger (2 lines).
+- **Phase 8 in progress:** graphics redrawn with the VWF font (`tools/letter.py`) in `tools/cards.py` (build applies
+  it, repoints): 26 picture cards (17 credits, 2 end cards, 7 act cards: tables 0x6A888/0x6A970), 7 location card
+  captions (palette -0x200 + tiles + map moved as one; park card checked in-game, the other 6 not yet seen), title
+  subtitle "Scaramouche of Hell" + copyright (inpainted, checked in-game). Staff name readings not confirmed:
+  田辺裕詞 Hiroshi, 鈴木謙子 Kenko, 中原郁奈子 Ikunako, 北上一三 Kazumi, 杉本憲英 Norihide (cards.EN 10-14).
+- **Next (phase 8):** remaining graphics rows in `docs/re/graphics.md` (item cards Z2CF684.., skill labels
+  Z2D2A24.., 7NEWS headline/captions, shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C, Z29D860 =
+  0x704C picture in the same layout); `text_tour.py` on the English build (`work/qa/tour_en`, run started),
+  `warp_all.py` (refresh states), visual QA chunks + `qa_gate.py`.
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
