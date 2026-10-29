@@ -120,7 +120,8 @@ guess for menus not toured yet (ENEMIES bios, battle quips). `%s` counts as 8 W'
   that points at a moved string is left unrewritten (except the 0x35xxxx-0x3Cxxxx graphics coincidences);
   `jp_left.py --slots` (build writes `build/slots.txt`, + `--known tools/jp_known.txt`) finds no Japanese.
 - Lint on the stored script (test_en_lint, `batches.check_entry(stored=True)`): font, printf order, `{br}` (exact
-  outside box text, at least the JP's in box text), glossary avoid/speaker/honorific, ordinal after a variable, no
+  outside box text, at least the JP's in box text), glossary avoid/speaker/honorific and every JP term's EN form
+  (`has_term`; or on the page before/after, `near_text`; `GLOSS_OK` one-offs), ordinal after a variable, no
   empty `en`, budgets, no stub last line (< 6 letters after a wrap break).
 - Box text wraps balanced (`batches.wrap`: greedy line count, then least squared slack, a break after . ! ? ,
   preferred); `batches.py rewrap` re-wraps script/ after a wrap change.
