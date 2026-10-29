@@ -40,7 +40,7 @@ def test_longer_text_moves_and_shorter_stays():
     import rom_text
     orig = ROM.read_bytes()
     recs = rom_text.unpack(orig)
-    a, b = [r for r in recs if r.ptrs and len(r.raw) >= 8 and "[" not in r.text][:2]
+    a, b = [r for r in recs if r.ptrs and len(r.raw) >= 8 and not set("[%{") & set(r.text)][:2]
     rom = bytearray(orig)
     rom_text.repack(rom, recs, {a.off: a.text * 3, b.off: b.text[:2]})
     assert struct.unpack_from("<I", rom, a.ptrs[0])[0] == rom_text.GBA + rom_text.ROM_END
@@ -50,6 +50,6 @@ def test_longer_text_moves_and_shorter_stays():
 def test_jp_table_roundtrips_text_and_unknown_bytes():
     import rom_text
     t = rom_text.jp_table()
-    raw = "蛮「おい、銀次！」α".encode("cp932") + b"\x02\x20"
+    raw = "蛮「%sおい、銀次！」α".encode("cp932") + b"\x02\x20"
     text, n = t.decode(raw, 0, len(raw))
-    assert n == len(raw) and text.endswith("α[02][20]") and t.encode(text) == raw
+    assert n == len(raw) and text == "蛮「%sおい、銀次！」{br}[02][20]" and t.encode(text) == raw

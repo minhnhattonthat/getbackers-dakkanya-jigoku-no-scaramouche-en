@@ -51,8 +51,8 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
   - 0x68840: party/character names, 8-byte entries (name ptr, ptr to an empty string).
   - 0x70520: field "examine" texts, 8-byte entries (two pointer slots, 0 = none).
 - Strings are stored in reverse order of use inside a scene (0x50000: the last line of a talk comes first).
-- One pointer aims mid-string (0x2DBBC `た`, tail of 0x2DBA8) - check before relying on it; may be a coincidental
-  value.
+- No real pointer aims mid-string: the one at 0x2DBBC comes from graphics data (0x1FC880), a coincidence
+  (`tests/test_script.py` checks every code/table pointer hits a record start or an empty string).
 - The full scan script: `python -X utf8 tools/textscan.py` (string list with reference counts).
 
 ## Repack (identity build) - verified (tests/test_build.py)
@@ -60,6 +60,23 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
   bytes after their first NUL, e.g. 0x2F624, 0x2FA8C-0x2FB48, own only text + NUL), text through an in-code cp932
   table (unknown bytes `[XX]`); `repack` writes in place when it fits, else at 0x400000+ with every pointer
   rewritten. `tools/build.py` with no edits = byte-identical ROM (0 writes).
-- Repoint uses every 4-aligned u32 in the ROM equal to `0x08000000|record`: a coincidental data word would be
-  rewritten too. Phase 4: restrict to the decoded pointer tables + code literal pools if a moved string breaks
-  something.
+- Repoint uses only words in `rom_text.PTR_SRC` (code/data below 0x2DB4C, tables 0x63000-0x98000 minus three byte
+  tables at 0x63E00-0x64300, 0x68D00-0x69100, 0x6A1C0-0x6A200). Outside it, 6 graphics words (0x35xxxx-0x3Cxxxx)
+  and the byte tables equal `0x08000000|offset` by chance; repointing them would corrupt graphics/tables.
+- "Empty string" pointers aim at zero padding after a string (0x68840 name table -> 0x2F618, 0x63998 -> 0x2DD24,
+  0x63B1C.. -> 0x2E218): `unpack` ends that string's slot before the target so a longer text never fills it.
+
+## Script (phase 4) - `script/<window>.json`
+- `tools/extract.py` dumps every record of the block, one file per 0x2000 ROM bytes, one JSON entry per line:
+  `id` (offset), `ptrs`, `max` (bytes in place; longer text moves past 0x400000 and is repointed), `jp`, `en`,
+  `status` (todo | done | data), `note`. A re-dump keeps `en`/`status`/`note`; `tools/build.py` writes each `en`.
+- Table (`rom_text.jp_table`): cp932 double-byte, `{br}` = `α` 0x83BF (dialogue line break, also the choice
+  separator: 0x30F28 `はい{br}いいえ`; the two menu labels 0x2F0C0/0x2F0E0 `β（ベータ）`/`{br}（アルファ）` just
+  become `Beta`/`Alpha`), `%s` `%3d` `%6d` printf specifiers (the lint keeps them in order), `[XX]` other bytes.
+- 6139 entries: 5344 text (95k JP chars), 795 `data`: the ramp table 0x2F624 + 8x8 font tiles 0x2FA64-0x30E43
+  (~350 records), 427 ASCII digit strings (0x44530.. with pointers; numbers, no translation), 10 single-byte
+  half-width/space bytes 0x30F1C-0x30F48 and 0x2DC88/0x2DC8C, 4 printf-only strings (`%s`, `%s%s`, `%3d`, `%6d`).
+- Text without kana/kanji that stays text: full-width numbers `５０`..`－０` (0x2E604-0x2E858), `……` lines,
+  `？？`, `“` 0x30F4C + `”を見つけた。` 0x30F50 (fragments around an item name: translate together).
+- Outside the block the only Japanese is 0x6AF14 `ゲットバッカーズのセーブデータだよ。...またね。`, reached from the
+  save code (0x22B90, 0x22C38): a save-file signature/message, not shown; leave it Japanese (byte-compared?).

@@ -14,11 +14,18 @@ from tbl import Table
 START, END = 0x2DB4C, 0x62350
 ROM_END = 0x400000
 GBA = 0x08000000
+# where real pointers live: code + data below the block, the script/item/name tables. Other words that happen to equal
+# GBA|record (6 in graphics at 0x35xxxx-0x3Cxxxx) are coincidences and must not be repointed.
+# Byte tables inside the table area make the same kind of coincidence (0x63EE4 `04 04 05 08` -> mid-string 0x50404).
+# shortcut: found by test_pointers_hit_record_starts_or_empty_strings, not by decoding the tables; none of their words
+# hits a record start today. Add a range here when that test names a new one.
+PTR_SRC = ((0, START), (0x63000, 0x63E00), (0x64300, 0x68D00), (0x69100, 0x6A1C0), (0x6A200, 0x98000))
 
 
 def jp_table():
-    """Every double-byte cp932 code that round-trips; other bytes decode as [XX]."""
-    lines = []
+    """Every double-byte cp932 code that round-trips, `α` as {br} (line break / choice separator), the printf
+    specifiers; other bytes decode as [XX]."""
+    lines = ['83BF={br}', '2573=%s', '253364=%3d', '253664=%6d']
     for lead in [*range(0x81, 0xA0), *range(0xE0, 0xFD)]:
         for trail in [*range(0x40, 0x7F), *range(0x80, 0xFD)]:
             b = bytes((lead, trail))
@@ -42,9 +49,10 @@ class Rec:
 
 def pointers(d):
     refs = {}
-    for i, (w,) in enumerate(struct.iter_unpack('<I', d[:len(d) & ~3])):
-        if GBA + START <= w < GBA + END:
-            refs.setdefault(w - GBA, []).append(i * 4)
+    for a, b in PTR_SRC:
+        for i, (w,) in enumerate(struct.iter_unpack('<I', d[a:b & ~3])):
+            if GBA + START <= w < GBA + END:
+                refs.setdefault(w - GBA, []).append(a + i * 4)
     return refs
 
 
@@ -63,6 +71,8 @@ def unpack(d, table=None):
         text, _ = table.decode(raw, 0, len(raw))
         # data records keep bytes after their first NUL (0x2F624 ramp, 0x2FA8C map runs): then the slot ends at the NUL
         slot = nxt - o if not any(d[o + len(raw):nxt]) else len(raw) + 1
+        # an "empty string" pointer into the padding (0x68840 name table -> 0x2F618) must keep reading a zero
+        slot = min([slot] + [max(t - o, len(raw) + 1) for t in range(o + len(raw), o + slot) if t in refs])
         recs.append(Rec(o, slot, refs.get(o, []), bytes(raw), text))
     return recs
 

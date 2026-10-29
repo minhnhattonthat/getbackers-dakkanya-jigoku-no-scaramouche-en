@@ -13,7 +13,7 @@ Skill: translate-retro-game; `python tools/skill.py` prints its folder. Read its
 
 ## Paths
 - Original ROM: `rom/GetBackers Dakkanya - Jigoku no Scaramouche (Japan).gba` (gitignored; SHA-1 in `rom.sha1`, checked by `tools/check_rom.py`). Emulator: this repo's own copy in `tools/mesen/` (MesenCE 2.2.1, https://github.com/nesdev-org/MesenCE/releases/download/2.2.1/Mesen_2.2.1_Windows.zip, plus `Firmware/gba_bios.bin` from `fetch_emu.py gba-bios`; gitignored; settings in `tools/emu-config/`). Savestates: `work/states/`.
-- Text: `script/` (format TBD in phase 4). Tables: `tbl/`. Glossary: `glossary.md`. RE notes index: `docs/re/README.md`. Fonts and their licences: `docs/fonts.md`.
+- Text: `script/<window>.json` (entry fields, data classes: `docs/re/text.md` §Script; re-dump with `python -X utf8 tools/extract.py`, keeps `en`). Table: `rom_text.jp_table()` (cp932 + `{br}` + printf). Glossary: `glossary.md`. RE notes index: `docs/re/README.md`. Fonts and their licences: `docs/fonts.md`.
 
 ## Rulings
 - Edit source files (.py .lua .asm .tbl .json) only with the file-edit tool; scripts here read and analyse, never `.replace()` and write back.

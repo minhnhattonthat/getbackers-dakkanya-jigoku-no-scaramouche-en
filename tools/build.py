@@ -1,12 +1,13 @@
 """build.py: original ROM -> build/getbackers_en.gba (+ build/writes.txt, the write log romdiff.py checks).
 
-Checks the dump against rom.sha1, unpacks the string block, repacks it (no edits yet: script/ comes in phase 4), and
-fails if any byte changed outside the logged writes.
+Checks the dump against rom.sha1, unpacks the string block, repacks it with the `en` of script/*.json, and fails if any
+byte changed outside the logged writes.
     python -X utf8 tools/build.py [OUT]"""
 import sys
 from pathlib import Path
 
 import check_rom
+import extract
 import rom_text
 import romdiff
 
@@ -14,9 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 ROM = ROOT / 'rom' / 'GetBackers Dakkanya - Jigoku no Scaramouche (Japan).gba'
 
 
-def build(orig):
+def build(orig, script=None):
+    """script: {id: entry} (default: script/*.json); each non-data entry with an en replaces its text."""
+    script = extract.load() if script is None else script
+    texts = {int(i, 16): e['en'] for i, e in script.items() if e['en'] and e['status'] != 'data'}
     rom = bytearray(orig)
-    writes = rom_text.repack(rom, rom_text.unpack(orig), {})
+    writes = rom_text.repack(rom, rom_text.unpack(orig), texts)
     errs, _ = romdiff.check(orig, bytes(rom), set(), writes)
     if errs:
         sys.exit('\n'.join(errs))

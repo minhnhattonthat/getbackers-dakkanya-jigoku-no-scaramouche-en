@@ -1,4 +1,4 @@
-"""check.py: the one-command check the pre-commit hook runs (pytest suite; text lint joins it once script/ exists)."""
+"""check.py: the one-command check the pre-commit hook runs (pytest suite, incl. the script/ lint in tests/test_script.py)."""
 import subprocess
 import sys
 
