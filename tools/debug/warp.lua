@@ -6,7 +6,10 @@
 -- field, battle, act card, ending) the way it does in play. After arrival (the game mode the step implies) the
 -- entry's route, if any, is played: "N buttons" steps as in route files, and "@X" requests game mode X
 -- (0x03002BAA) at that point, for screens with no story step of their own (game over, location card).
--- Opt-in: SHOT_AT=N extra shot N frames after arrival. Click through text with emu.py --mash N (it also clicks
+-- Opt-in: ALL=1 in the field gives every item x3 (u8 counts 0x030038EC+i) and all six characters with skill bits
+-- (+0x10..0x13 of the 0x84-byte structs at 0x03003510; byte 0 = character id, bit 7 = absent): item cards and
+-- 21 of 44 skill labels show in the menu (menu_items / menu_special). CARD=1-9 with location_card: which card
+-- (task byte +0x34 read before the switch 0x08019604; 9 = Ura-Tocho, 3 = Honky Tonk). SHOT_AT=N extra shot N frames after arrival. Click through text with emu.py --mash N (it also clicks
 -- through the title); save a state with emu.py --state-out. tools/debug/warp_all.py runs the whole list.
 local M = emu.memType.gbaMemory
 local MODE, STEP, DIRECTOR = 0x03002BA8, 0x030042C0, 0x08021548
@@ -33,10 +36,27 @@ L.on_exec(DIRECTOR, DIRECTOR, function()
   L.log(string.format("f%d warp: step %d", L.frame, scene.step))
 end)
 
+if CARD then
+  for _, a in ipairs({0x08019244, 0x08019854}) do  -- ldrb r0, [r0]: r0 = the task's card byte
+    L.on_exec(a, a, function()
+      local s = emu.getState()
+      emu.write(s["cpu.r0"] or s["cpu.r[0]"], CARD, M)
+    end)
+  end
+end
+
 local boot_press = 0
 local modes_seen = {}
 L.on_frame(function(f)
   local mode = emu.read(MODE, M)
+  if ALL and mode == 0xA then
+    for i = 0, 23 do emu.write(0x030038EC + i, 3, M) end
+    for c = 0, 5 do
+      local b = 0x03003510 + c * 0x84
+      if c > 1 then emu.write(b, c, M) elseif c == 1 then emu.write(b, 0, M) end  -- char 0 = Ginji (id 1)
+      for i = 0x10, 0x13 do emu.write(b + i, 0xFF, M) end
+    end
+  end
   if not warped then
     if mode == 0xA or mode == 0xB then  -- the title cursor sat on CONTINUE: a battery save is present
       error("loaded a save instead of NEW GAME: run with --sav of a blank save (warp_all.py does)")

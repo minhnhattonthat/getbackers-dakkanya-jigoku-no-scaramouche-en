@@ -55,17 +55,17 @@ Updated at the end of every session. Keep it to what the next session needs; his
   Ban's オッチャン = "old man" (5 lines), Paro in caps (7 lines), ハンバーガー = hamburger (2 lines).
 - **Phase 8 in progress:** graphics redrawn with the VWF font (`tools/letter.py`) in `tools/cards.py` (build applies
   it, repoints): 26 picture cards (17 credits, 2 end cards, 7 act cards: tables 0x6A888/0x6A970), 7 location card
-  captions (palette -0x200 + tiles + map moved as one; park card checked in-game, the other 6 not yet seen), title
+  captions (palette -0x200 + tiles + map moved as one; all 7 seen in-game with `warp.lua` `CARD=1-9`), title
   subtitle "Scaramouche of Hell" + copyright (inpainted, checked in-game). Staff name readings not confirmed:
   田辺裕詞 Hiroshi, 鈴木謙子 Kenko, 中原郁奈子 Ikunako, 北上一三 Kazumi, 杉本憲英 Norihide (cards.EN 10-14).
-  Item cards (24) and skill labels (44): sheets rewritten in place (`cards.SHEETS`), names from the script; not
-  yet seen in-game (the warped party has no items or skills). Non-blocking: the 雷帝降臨 label reads "Lightning
-  Emperor" (body 22 px: 2 lines; `cards.SHORT`, D4 last resort); Thunder-bolt/Thunder-clap hyphenated.
-  Z29D860 (0x704C) = KCE Japan logo, English.
-- **Next (phase 8):** 7NEWS headline strip + photo caption (tiles in no ROM block: trace the VRAM writer);
-  shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C; `warp_all.py` on the English build (the
-  states in `work/states/` are still the marker build's: intro_news shows marker text); `text_tour.py` on the
-  English build (`work/qa/tour_en`, run started before the graphics), visual QA chunks + `qa_gate.py`.
+  Item cards (24) and skill labels (44): sheets rewritten in place (`cards.SHEETS`), names from the script; with
+  `warp.lua` `ALL=1` all 24 item cards and 21 skill labels seen in the menus (Ban's sheet and later skills: unlock
+  bits not found, static only). Non-blocking: the 雷帝降臨 label reads "Lightning Emperor" (body 22 px: 2 lines;
+  `cards.SHORT`, D4 last resort); Thunder-bolt/Thunder-clap hyphenated. 7NEWS headline + caption in English
+  (seen, step 1). Z29D860 (0x704C) = KCE Japan logo, English. `warp_all.py` on the English build: 73/73 ok
+  (`work/states/` now English).
+- **Next (phase 8):** shop signs Z11C08C, kana Z1ABD44, sign Z314590, fragment Z2C441C; `text_tour.py` on the
+  English build (`work/qa/tour_en`), visual QA chunks + `qa_gate.py`.
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
@@ -73,7 +73,6 @@ Updated at the end of every session. Keep it to what the next session needs; his
   - Windows still a guess (tools/windows.py): yes/no (0x30F28, 6-tile window), item names in the field found/full
     message, ENEMIES menu names/bios and battle quips (tables 0x65000/0x68000, assumed help bar). Tour them in
     phase 8 (warped party has no items/enemy log).
-  - `work/states/*.mss` were last made from the marker build: rerun `warp_all.py` on the English build.
   - Title entries bonus stage / boss retry: conditions unknown (cleared game, lost boss?); modes 0x10/0x11 are
     reached by a mode request, not their real field exit (find a map exit with target 0xEF/0xF0/0xFA-0xFD).
   - Warped party is a new game's (Ginji only, level 1): no GOD/NOENC yet (no HP address); add if a QA route dies.
