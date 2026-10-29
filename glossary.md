@@ -2,7 +2,9 @@
 
 Binding for every translator and reviewer. Agents propose additions in reports; only the controller edits this file.
 `tools/batches.py check` enforces: speaker labels (Characters rows) as `EN: `, honorifics after Characters names,
-and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avoid`.
+the Avoid column, and every JP term's EN form (any case, plural s optional, or on the page before/after; notes
+`Label...` = speaker check only, `Loose...` = common word, Avoid only; one-off exceptions: `batches.GLOSS_OK`).
+Rows: `JP forms (comma-separated) | EN | max | notes | Avoid`.
 
 ## Rulings (asked of the user once; options and reasons in docs/decisions.md)
 - Honorifics: kept, hyphenated (Ginji-san, Ban-chan). Name order: Western (Ban Mido, Ginji Amano).
@@ -40,7 +42,7 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | レディ・ポイズン | Lady Poison |  | Himiko's alias (official). |  |
 | ＨＥＶＮ | Hevn |  | Official spelling Hevn (not Heaven). |  |
 | 波児（ポール）, 波児 | Paul |  | Paul Wan, HONKY TONK owner (official). Ruby gives ポール. |  |
-| マスター | Paul |  | Speaker label for Paul ("Master" in-world). Use Paul for clarity; alt "Master". |  |
+| マスター | Paul |  | Label: speaker label for Paul ("Master" in-world). Use Paul for clarity; alt "Master". |  |
 | 夏実 | Natsumi |  | Natsumi Mizuki (official); surname not in script. |  |
 | マドカ | Madoka |  | Madoka Otowa (official); only mentioned. マドカお嬢様 = "Lady Madoka"/"Miss Madoka". |  |
 | スカラムーシュ | Scaramouche |  | Main villain; secretly Asia Mandel, a WOMAN (reveal step 235-236). Keep ungendered before. |  |
@@ -95,7 +97,7 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | 天子峰 | Teshimine |  | Takeru Teshimine (天子峰猛), Ginji's mentor in the Limitless Fortress (anime credits). |  |
 | 青樹佑夜 | Yuya Aoki |  | Bonus cameo enemy = the manga's writer (official credit spelling). |  |
 | 綾峰欄人 | Rando Ayamine |  | Bonus cameo enemy = the manga's artist (official credit spelling). |  |
-| ？？？, ？？ | ??? |  | Mystery label/enemy. |  |
+| ？？？, ？？ | ??? |  | Label: mystery speaker/enemy (in text ？？ is punctuation). |  |
 | ゾンビ | Zombie |  | Illusion during the bomb scene. |  |
 | μベビー | Mu Baby |  | Mitate's pet, called Pochi. unsure: keep Greek "μ Baby" if font has it |  |
 | ポチ | Pochi |  | Mitate's pet name (classic Japanese dog name). |  |
@@ -250,7 +252,7 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | Ｆモード | F Mode |  | "F for Final and Phoenix" (step ~182). |  |
 | ＳＣＫ－１号 | SCK-1 |  | Hypnotherapy machine boss. |  |
 | 自動追尾防犯装置 | auto-tracking security system |  | Zagad's official description. |  |
-| 自分 | Self |  | Target label "self". |  |
+| 自分 | Self |  | Loose: target label "self"; in text 自分 = oneself. |  |
 | 単 | One |  | Item target: one ally. "単：ＨＰ少回復" -> "One: ...". |  |
 | 全 | All |  | Item target: all allies. |  |
 | 味単 | Ally |  | Skill target: one ally. |  |
@@ -274,7 +276,7 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | ジャンク・キッズ, ジャンクキッズ | Junk Kids |  | Kazuki's Ura-Shinjuku group here. |  |
 | アルティメット | the Ultimate |  | Hishiki's former fighting circuit. |  |
 | 奪還屋 | retrieval agent |  | GetBackers' trade. unsure: official uses "Retrieval Agency"/"retrievers"; 奪還屋さん -> "Mr. Retrievers" |  |
-| 奪還 | retrieval |  | Verb 奪り還す -> take back; 奪還料 retrieval fee; 奪還率 success rate. |  |
+| 奪還 | retrieval |  | Loose (retrieve, get back, job). Verb 奪り還す -> take back; 奪還料 retrieval fee; 奪還率 success rate. |  |
 | 運び屋 | Transporter |  | Himiko/Akabane trade (official dub). |  |
 | 護り屋 | bodyguard |  | Hishiki's trade. unsure: official term |  |
 | ＧｅｔＢａｃｋｅｒｓ | GetBackers |  | Official. |  |
@@ -353,20 +355,20 @@ and the Avoid column. Rows: `JP forms (comma-separated) | EN | max | notes | Avo
 | 能力値, 全パラメータ | stats |  | 能力値復帰 = restore stats; 全パラメータダウン = all stats down. |  |
 | 毒 | Poison |  | Status. |  |
 | マヒ | Paralysis |  | Status. |  |
-| 混乱 | Confusion |  | Status. |  |
+| 混乱 | Confusion |  | Loose: the status; in text chaos, turmoil. |  |
 | 眠り | Sleep |  | Status. |  |
 | 即死 | instant death |  | Attack property. |  |
 | ステータス異常 | status ailments |  | Skill description. |  |
 | 戦闘不能 | KO |  | "戦闘不能から全快復帰" = revive from KO at full HP. |  |
-| 瀕死 | near death |  | "瀕死で復帰" = revive with low HP. |  |
+| 瀕死 | near death |  | Loose. "瀕死で復帰" = revive with low HP. |  |
 | 結界 | barrier |  | "防御力アップ＋結界" = Defense up + barrier. |  |
 | 後列可 | hits back row |  | Skill description tag. |  |
 | 相性 | Affinity |  | Pause-menu label already AFFINITY. |  |
 | 特殊技 | Special Skills |  | Menu. |  |
 | 特殊攻撃 | Special Attack |  | Battle command help. |  |
 | 経験値 | EXP |  | "の経験値を得た" = gained EXP. |  |
-| レベルアップ | Level Up |  | "%sがレベルアップ！" |  |
-| セーブ | Save |  | Save menu. |  |
+| レベルアップ | Level Up |  | Loose. "%sがレベルアップ！" = "%s leveled up!" |  |
+| セーブ | Save |  | Loose: save menu (saving, save). |  |
 | ボーナスステージ | Bonus Stage |  | Title BONUS mode. |  |
 | 負けたボス戦をもう一度だけ戦います | Refight a lost boss battle once |  | REVENGE mode help. |  |
 | 少年マガジン | Weekly Shonen Magazine |  | Running joke (always sold out); GetBackers' magazine. |  |

@@ -28,6 +28,16 @@ BLANK = ' 　'
 SPEAKER = re.compile(r'^([^「」：…。、！？\s]{1,12})[「：]')
 HONORIFIC = {'さん': '-san', 'くん': '-kun', '君': '-kun', 'ちゃん': '-chan', '様': '-sama', 'サン': '-san'}
 LITERAL_ALPHA = {'02F0E0'}     # α（アルファ） menu label: the α decodes as {br} but is a letter here (docs/re/text.md)
+GLOSS_OK = {                   # (id, JP term): glossary form deliberately not used (reviewed one by one)
+    ('045554', '銀'): 'cut-off name, "Gin...!!"',
+    ('04A104', '波児（ポール）'): 'stretched, "Paaauuul"',
+    ('058164', '赤屍'): 'stretched, "Akabaaaaaaaane"',
+    ('04E2B8', '士度'): 'Ginji says it to Shido: "someone like you"',
+    ('05A53C', '裏都知事'): '"him", the Governor named in the line before',
+    ('058084', '五人衆'): '"the Five", the glossary\'s own short form',
+    ('050DF4', '絃術'): '"string art", Aono only knows the rumour',
+    ('04AF98', '須玉サチ子'): '"Sachiko-san": the honorific rule wants given name + -san',
+}
 SCRIPTS = (r'[一-鿿々]', r'[゠-ヿー]', r'[぀-ゟ]', r'[Ａ-Ｚａ-ｚ０-９]')
 
 
@@ -62,8 +72,10 @@ def glossary():
         c = [x.strip() for x in line.strip().strip('|').split('|')] if line.startswith('|') else []
         if len(c) >= 2 and c[0] not in ('JP', '') and not set(c[0]) <= set('-: '):
             avoid = [a.strip() for a in c[4].split(',') if a.strip()] if len(c) > 4 else []
-            # generic speaker labels (notes "Label...": 客, お爺さん, 駅員): speaker check, but お客様 is no honorific
-            sec = 'Labels' if section == 'Characters' and len(c) > 3 and c[3].startswith('Label') else section
+            # generic speaker labels (notes "Label...": 客, お爺さん, 駅員): speaker check, but お客様 is no honorific;
+            # notes "Loose...": a common word that is a term only in menus (自分 Self): Avoid column only
+            note = c[3] if len(c) > 3 else ''
+            sec = 'Labels' if note.startswith('Label') else 'Loose' if note.startswith('Loose') else section
             rows.append(([j.strip() for j in c[0].split(',')], c[1], avoid, sec))
     return rows
 
@@ -87,6 +99,22 @@ def term_hits(jp, term):
 
 def terms_for(jp, rows):
     return [r for r in rows if any(term_hits(jp, j) for j in r[0])]
+
+
+def has_term(enr, text):
+    """enr in text, ignoring case, quotes, end punctuation, a leading "the" and a plural s (Junk Kids / Junk Kid A)."""
+    def norm(s):
+        return re.sub(r'["\']', '', s.replace('{br}', ' ')).lower()
+    f = re.sub(r'^the ', '', norm(enr).rstrip('.!?, '))
+    t = norm(text)
+    return f in t or f.endswith('s') and f[:-1] in t
+
+
+def near_text(en_of):
+    """{id: en of the entries just before and after it in script order}: a term the translation moved across a page."""
+    es = entries()
+    return {e['id']: ' '.join(en_of.get(x['id'], '') for x in es[max(i - 1, 0):i + 2] if x is not e)
+            for i, e in enumerate(es)}
 
 
 # --- wrap / check -----------------------------------------------------------------------------------------------
@@ -137,9 +165,10 @@ def wrapped(e, en):
     return lead + '{br}'.join(l for seg in core.split('{br}') for l in wrap(seg, px)) + trail
 
 
-def check_entry(e, en, rows, stored=False):
+def check_entry(e, en, rows, stored=False, near=''):
     """Errors for one translation. stored: en as script/ holds it, box text already wrapped (more {br} than the JP;
-    checks that read words see the wrap breaks as spaces, and a wrapped last line under 6 letters is a stub)."""
+    checks that read words see the wrap breaks as spaces, and a wrapped last line under 6 letters is a stub).
+    near: en of the neighbouring pages (near_text), where a glossary term may have moved."""
     errs, jp = [], e['jp']
     if not en.strip():
         return ['empty']
@@ -171,6 +200,11 @@ def check_entry(e, en, rows, stored=False):
         for a in avoid:
             if re.search(r'\b%s\b' % re.escape(a), words):
                 errs.append('glossary: avoid %r (use %r)' % (a, enr))
+        if section not in ('Labels', 'Loose'):     # the speaker label is checked below
+            for j in jps:
+                hits = [h for h in term_hits(jp, j) if not (m and h.start() < m.end())]
+                if hits and (e['id'], j) not in GLOSS_OK and not has_term(enr, words) and not has_term(enr, near):
+                    errs.append('glossary: %s must be %r' % (j, enr))
         if section not in ('Characters', 'Labels'):
             continue
         for j in jps:
@@ -210,9 +244,10 @@ def check(batch, quiet=False):
         dup = {i for i in ids if ids.count(i) > 1}
         errs.append('ids: missing %s extra %s duplicate %s' % (sorted(miss), sorted(extra), sorted(dup)))
     script, rows = extract.load(), glossary()
+    near = near_text(dict({i: e['en'] for i, e in script.items()}, **dict(got)))
     for i, en in got:
         if i in script:
-            errs += ['%s: %s' % (i, x) for x in check_entry(script[i], en, rows)]
+            errs += ['%s: %s' % (i, x) for x in check_entry(script[i], en, rows, near=near.get(i, ''))]
     for x in errs:
         print('%s %s' % (batch, x))
     if errs:

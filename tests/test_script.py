@@ -85,6 +85,7 @@ def test_en_lint(script):
     import windows
     t = vwf.en_table()
     rows = batches.glossary()
+    near = batches.near_text({i: e["en"] for i, e in script.items()})
     errs = []
     for e in script.values():
         en, jp = e["en"], e["jp"]
@@ -94,7 +95,7 @@ def test_en_lint(script):
             errs.append("%s: no en (%s)" % (e["id"], e["status"]))
             continue
         # the batch check on the stored text: glossary, speakers, honorifics, {br} and printf, font, stub lines
-        errs += ["%s: %s" % (e["id"], x) for x in batches.check_entry(e, en, rows, stored=True) if "too long" not in x]
+        errs += ["%s: %s" % (e["id"], x) for x in batches.check_entry(e, en, rows, stored=True, near=near.get(e["id"], "")) if "too long" not in x]
         try:
             t.encode(en)
         except ValueError as x:

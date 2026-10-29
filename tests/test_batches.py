@@ -53,3 +53,16 @@ def test_check_entry_catches_speaker_honorific_avoid_and_codes():
     assert not batches.check_entry(br, "Yes{br}No", ROWS)
     客 = [(["客"], "Customer", [], "Labels")]
     assert not batches.check_entry({"id": "z", "ptrs": ["7F000"], "jp": "お客さん、どうぞ"}, "Go ahead, sir.", 客)
+
+
+def test_check_entry_catches_wrong_glossary_terms():
+    rows = [(["美堂蛮"], "Ban Mido", [], "Characters"), (["蛮"], "Ban", [], "Characters"),
+            (["ハンバーガー"], "Hamburger", [], "Items"), (["自分"], "Self", [], "Loose")]
+    item = {"id": "q1", "ptrs": ["7F000"], "jp": "ハンバーガー"}
+    assert any("Hamburger" in x for x in batches.check_entry(item, "Banana", rows))
+    assert not batches.check_entry(item, "HAMBURGERS", rows)
+    assert any("Ban Mido" in x for x in batches.check_entry(BOX, "Ban: \"I am John Smith.\"", rows))
+    assert not batches.check_entry(BOX, "Ban: \"Yeah, I'm Ban Mido.\"", rows)
+    page = {"id": "q2", "ptrs": ["7F000"], "jp": "蛮「オレが美堂蛮と"}
+    assert not batches.check_entry(page, "Ban: \"Call me", rows, near="Ban Mido, got it?\"")
+    assert not batches.check_entry({"id": "q3", "ptrs": ["7F000"], "jp": "自分の家"}, "My own house", rows)

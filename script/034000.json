@@ -8,7 +8,7 @@
 {"id": "0340D8", "ptrs": ["6EBD8", "6EBE0"], "max": 44, "jp": "ダンボールとビニールシートでできた家だ。", "en": "A house made of cardboard{br}and plastic sheeting.", "status": "done", "note": ""},
 {"id": "034104", "ptrs": ["6EBEC"], "max": 32, "jp": "蛮「これで、体力満タンだぜ」", "en": "Ban: \"Now I'm back at full strength.\"", "status": "done", "note": ""},
 {"id": "034124", "ptrs": ["6EBE8"], "max": 44, "jp": "銀次「オッチャン、この恩は必ず返すからね」", "en": "Ginji: \"Pops, I'll pay you{br}back for this, I promise!\"", "status": "done", "note": ""},
-{"id": "034150", "ptrs": ["6EBE4"], "max": 48, "jp": "蛮「お言葉に甘えて、ハンバーガーいただこうぜ」", "en": "Ban: \"Since he's offerin',{br}let's help ourselves to the burgers.\"", "status": "done", "note": ""},
+{"id": "034150", "ptrs": ["6EBE4"], "max": 48, "jp": "蛮「お言葉に甘えて、ハンバーガーいただこうぜ」", "en": "Ban: \"Since he's offerin',{br}let's help ourselves to the hamburgers.\"", "status": "done", "note": ""},
 {"id": "034180", "ptrs": ["6EC98"], "max": 36, "jp": "銀次「今は、起こさないでおこうよ」", "en": "Ginji: \"Let's not wake him up right now.\"", "status": "done", "note": ""},
 {"id": "0341A4", "ptrs": ["6EC94"], "max": 20, "jp": "山村「ぐー、ぐー」", "en": "Yamamura: \"Zzz... Zzz...\"", "status": "done", "note": ""},
 {"id": "0341B8", "ptrs": ["6ECA0"], "max": 32, "jp": "ドラゴニア会構成員「なんだ！」", "en": "Dragonia Member: \"What?!\"", "status": "done", "note": ""},

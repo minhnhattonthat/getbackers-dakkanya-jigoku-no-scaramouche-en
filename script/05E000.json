@@ -10,7 +10,7 @@
 {"id": "05E0EC", "ptrs": ["94E78"], "max": 4, "jp": "[31][31][30]", "en": "", "status": "data", "note": "single-byte bytes, not 12x12 font text: ASCII digits"},
 {"id": "05E0F0", "ptrs": ["94E88"], "max": 72, "jp": "山村「やあ、蛮くん、銀次くん。これから警察に行って娘に会ってくるよ」", "en": "Yamamura: \"Well, hey there,{br}Ban-kun, Ginji-kun. I'm off to the{br}police to go see my daughter.\"", "status": "done", "note": ""},
 {"id": "05E138", "ptrs": ["94E84"], "max": 28, "jp": "銀次「あれ、オッチャン？」", "en": "Ginji: \"Huh, Pops?\"", "status": "done", "note": ""},
-{"id": "05E154", "ptrs": ["94EA4"], "max": 24, "jp": "蛮「オッチャン……」", "en": "Ban: \"Pops...\"", "status": "done", "note": ""},
+{"id": "05E154", "ptrs": ["94EA4"], "max": 24, "jp": "蛮「オッチャン……」", "en": "Ban: \"Old man...\"", "status": "done", "note": ""},
 {"id": "05E16C", "ptrs": ["94E98"], "max": 52, "jp": "いろいろありがとう。みんなアンタたちのおかげだよ」", "en": "Thanks for everythin'.{br}It's all on account of you folks.\"", "status": "done", "note": ""},
 {"id": "05E1A0", "ptrs": ["94E94"], "max": 56, "jp": "山村「驚いたことに、娘のほうから連絡があったんじゃよ。", "en": "Yamamura: \"Believe it or not,{br}she's the one who got in touch with me.", "status": "done", "note": ""},
 {"id": "05E1D8", "ptrs": ["94E90"], "max": 28, "jp": "銀次「え？　会えるの？」", "en": "Ginji: \"Huh? You get to see her?\"", "status": "done", "note": ""},

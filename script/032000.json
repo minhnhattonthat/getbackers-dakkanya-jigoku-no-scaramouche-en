@@ -1,6 +1,6 @@
 [
 {"id": "032010", "ptrs": ["6BB94"], "max": 44, "jp": "銀次「おっちゃん、この恩は必ず返すからね」", "en": "Ginji: \"Pops, I'll pay you{br}back for this, I promise.\"", "status": "done", "note": ""},
-{"id": "03203C", "ptrs": ["6BB90"], "max": 44, "jp": "蛮「お言葉に甘えて、ハンバーガー頂こうぜ」", "en": "Ban: \"Let's take him up on{br}it and have a burger.\"", "status": "done", "note": ""},
+{"id": "03203C", "ptrs": ["6BB90"], "max": 44, "jp": "蛮「お言葉に甘えて、ハンバーガー頂こうぜ」", "en": "Ban: \"Let's take him up on{br}it and have a hamburger.\"", "status": "done", "note": ""},
 {"id": "032068", "ptrs": ["6BBA0"], "max": 32, "jp": "火を点けたら一瞬で燃えそうだ。", "en": "Looks like it'd go up in{br}flames the second you lit it.", "status": "done", "note": ""},
 {"id": "032088", "ptrs": ["6BBAC"], "max": 44, "jp": "これが『オジサン』たちの家なのだろうか。", "en": "Is this where the \"Old Guys\" live?", "status": "done", "note": ""},
 {"id": "0320B4", "ptrs": ["6BBA8"], "max": 48, "jp": "ダンボールとビニールシートでできているようだ。", "en": "It seems to be made of{br}cardboard and plastic sheets.", "status": "done", "note": ""},
