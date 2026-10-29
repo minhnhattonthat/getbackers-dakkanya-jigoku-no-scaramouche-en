@@ -71,8 +71,15 @@ Updated at the end of every session. Keep it to what the next session needs; his
   `text_tour.py build/getbackers_en.gba --jobs 2 --out work/qa/tour_en --scenes step:152 step:159 ...`, then
   `--logs-only`). Sheets: `sheet.py DIR --changed 0.02 --div 1 --max 16 --cols 4` per scene + `zz_gfx/` proofs;
   `work/qa/manifest.tsv` 324 sheets, 11 chunks (`work/qa/chunks`), verdicts in `work/qa/verdicts`. No `tour_jp`.
-- **Next (phase 8):** visual-QA verdicts for all 11 chunks, fix issues, `qa_gate.py check` exit 0; battles 152-267
-  tour; then phase 9 (release).
+  Visual QA (3 rounds, 17 reviewer agents) found and fixed: third-line descenders cut by the screen bottom (VWF:
+  `Y_LIFT` 2 and `plot` now skips rows above canvas y 0 instead of clamping, so pitch stays 11 px; test
+  `test_first_line_lifted_above_canvas_keeps_pitch`), bold lettering filling 1 px gaps (m, w) on act cards and
+  credits (`letter.draw`), Japanese ruby + 奪還屋 badge on the title logo (D5: removed), countdown/sign indents
+  (JP centring kept), narrower `j`, Ban's split page; stale shots (taken before a graphics build) re-shot.
+  Tour sheets other than the re-shot ones predate the 1 px text lift (checked on B 3-line pages, the field box A
+  and the yes/no window: fine).
+- **Next (phase 8):** last reviewer verdicts (`work/qa/chunks3`), `qa_gate.py check` exit 0; battles 152-267
+  tour (stopped for low memory); then phase 9 (release).
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
