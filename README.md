@@ -1,6 +1,6 @@
 # GetBackers Dakkanya: Jigoku no Scaramouche English translation
 
-Unofficial English fan translation of **GetBackers Dakkanya: Jigoku no Scaramouche** (Game Boy Advance, Konami, 2003): the source text and tools
+Unofficial English fan translation of **GetBackers Dakkanya: Jigoku no Scaramouche** (Game Boy Advance, Konami, 2001): the source text and tools
 that build the patch.
 
 **Just want to play?** Download the patch from [Releases](../../releases) and follow its README. This repository holds
