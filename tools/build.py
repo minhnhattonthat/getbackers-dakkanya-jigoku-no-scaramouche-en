@@ -7,6 +7,7 @@ byte changed outside the logged writes.
 import sys
 from pathlib import Path
 
+import cards
 import check_rom
 import extract
 import marker
@@ -26,8 +27,9 @@ def allowed():
 
 
 def outside(writes, slots=frozenset()):
-    """Writes not inside one allowed range nor exactly one pointer word of slots (the strings' pointer offsets)."""
-    ok = allowed()
+    """Writes not inside one allowed range nor exactly one pointer word of slots (the strings' pointer offsets) or of
+    the graphics tables (cards.pointer_words)."""
+    ok, slots = allowed(), set(slots) | cards.pointer_words()
     return [w for w in writes if not (w[0] in slots and len(w[2]) == 4)
             and not any(a <= w[0] and w[0] + len(w[2]) <= b for a, b in ok)]
 
@@ -41,6 +43,8 @@ def build(orig, script=None, engine=True):
     if engine:
         vwf.apply(rom, writes)
     writes += rom_text.repack(rom, recs, texts, vwf.en_table())
+    if engine:
+        cards.apply(rom, writes)
     errs, _ = romdiff.check(orig, bytes(rom), set(), writes)
     slots = {p for r in recs for p in r.ptrs}
     errs += ['0x%06X: %s writes outside the allowed ranges' % (o, who) for o, _, _, who in outside(writes, slots)]
