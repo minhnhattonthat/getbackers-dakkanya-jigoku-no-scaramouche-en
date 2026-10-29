@@ -78,8 +78,14 @@ Updated at the end of every session. Keep it to what the next session needs; his
   (JP centring kept), narrower `j`, Ban's split page; stale shots (taken before a graphics build) re-shot.
   Tour sheets other than the re-shot ones predate the 1 px text lift (checked on B 3-line pages, the field box A
   and the yes/no window: fine).
-- **Next (phase 8):** last reviewer verdicts (`work/qa/chunks3`), `qa_gate.py check` exit 0; battles 152-267
-  tour (stopped for low memory); then phase 9 (release).
+  Round 3-4: all re-shot sheets ok; the title's old badge area under the "s" was a smear of row 57 (now body red,
+  `cards.title_english`). Battle tour re-run (`--jobs 2`) stopped again by the harness for low memory: battles
+  159-225 done (12, sheets in the manifest, round 5 = `work/qa/chunks5`), 229-267 not run (9 battles; partial
+  dirs step_229/232 have no sheet). `--logs-only` over every step dir: B 1410 seen (the re-shot scenes replaced
+  their longer logs). Phase 9 ready: `tools/release.py` (build, check, smoke, jp_left, qa_gate, BPS + re-apply,
+  zip) + `docs/README_release.txt`.
+- **Next:** round-5 verdicts -> `qa_gate.py check` exit 0 -> `tools/release.py`. Battles 229-267 tour when memory
+  allows (`text_tour.py build/getbackers_en.gba --jobs 1 --out work/qa/tour_en --scenes step:229 ...`).
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
