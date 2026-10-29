@@ -29,7 +29,10 @@ Updated at the end of every session. Keep it to what the next session needs; his
   `tools/windows.py` (budgets + entry -> window by pointer location) checked by the en lint. Marker build
   `tools/build.py --marker` (+ `--qa ID=TEXT` overrides): boots, 73/73 warps ok, every box shows `#id`; torture line
   (all glyphs) ok. `jp_left.py --gba-ptrs` on it: nothing missed (only the known 0x6AF14 and a byte-table hit).
-  Text tour: `tools/debug/text_tour.py` + `textlog.lua` (which entries each path shows, per event step).
+  Text tour: `tools/debug/text_tour.py` + `textlog.lua` (which entries each path shows, per event step). Last run
+  on the marker build (stopped by the harness for low memory at 136/147 event steps; `--logs-only` aggregates):
+  all 136 arrived, no hang, 1600 entries shown (B; one A, 0x37094), 0 mismatches with `windows.window_of`.
+  `work/qa/text_tour/seen.tsv`. Rerun with `--jobs 2` when memory allows (steps not yet logged: 11).
   Tests: `tests/test_vwf.py` (unicorn), marker-fills-window, hook branch-target check. Details: `docs/re/text.md`.
 - **Next:** phase 6 (translate): translator brief + glossary, batches by window (`windows.window_of`), budgets
   from `tools/windows.py` (box: 3 x 216 px; help: 1 x 232 px; names/items short). Write `{br}` breaks by

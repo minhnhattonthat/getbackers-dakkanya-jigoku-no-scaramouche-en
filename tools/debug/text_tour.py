@@ -40,6 +40,7 @@ def main():
     ap.add_argument('--frames', type=int, default=4000)
     ap.add_argument('--jobs', type=int, default=4)
     ap.add_argument('--out', default=str(ROOT / 'work' / 'qa' / 'text_tour'))
+    ap.add_argument('--logs-only', action='store_true', help='no emulator: aggregate the logs already in --out')
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -66,8 +67,13 @@ def main():
     where.sort()
     starts = [w[0] for w in where]
     seen = {}
-    with ThreadPoolExecutor(a.jobs) as ex:
-        for scene, log in ex.map(lambda s: run(a.rom, out, s, a.frames), scenes):
+    if a.logs_only:
+        logs = [(d.name, (d / 'log.txt').read_text(encoding='utf-8', errors='replace'))
+                for d in sorted(out.iterdir()) if (d / 'log.txt').is_file()]
+    else:
+        logs = ThreadPoolExecutor(a.jobs).map(lambda s: run(a.rom, out, s, a.frames), scenes)
+    if True:
+        for scene, log in logs:
             for f, path, p in re.findall(r'f(\d+) TXT (\w) ([0-9A-F]+)', log):
                 p = int(p, 16)
                 k = bisect.bisect_right(starts, p) - 1
