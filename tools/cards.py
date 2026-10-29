@@ -232,6 +232,8 @@ TITLE = 0x70D0
 SUB = (30, 214, 68, 86)         # x0, x1, y0, y1 of the 地獄のスカラムーシュ lettering (white 83 outline, dark fill)
 CPR = ((33, 210, 133, 146), (33, 126, 146, 159))      # x0, x1, y0, y1 of the two copyright lines
 WHITE, DARK, LIGHT = 83, 253, 31
+RUBY = (160, 228, 20, 29)       # x0, x1, y0, y1 searched for the ruby's white plate (filled between its light ends)
+BADGE = (182, 210, 58, 67)      # the blue 奪還屋 box
 
 
 def title_english(rom):
@@ -242,11 +244,20 @@ def title_english(rom):
     mask = {(x + i, y + j) for x, y in white for i in range(-3, 4) for j in range(-3, 4)
             if y0 - 1 <= y + j < y1 + 2}
     inpaint(px, mask, y0)           # nothing from the logo above
+    bx0, bx1, by0, by1 = BADGE      # D5: the 奪還屋 badge under "rs": the letters run on to y 62, the logo's bottom
+    for y in range(by0, by1):       # outline rows (63-66) continue from the column on its left
+        px[y][bx0:bx1] = px[by0 - 1][bx0:bx1] if y < 63 else [px[y][bx0 - 1]] * (bx1 - bx0)
     letter.draw(px, 'Scaramouche of Hell', 120, 67, DARK, 2, 2, 1, outline=WHITE)
     # the two (anti-aliased) copyright lines over the art: filled from the art above and below, redrawn
     inpaint(px, {(x, y) for x0, x1, y0, y1 in CPR for y in range(y0, y1) for x in range(x0, x1)})
     letter.draw(px, '(C) 2001 Yuya Aoki/Rando Ayamine/Kodansha', 120, 132, LIGHT, outline=DARK)
     letter.draw(px, '(C) 2001 KONAMI', 38 + letter.width('(C) 2001 KONAMI') // 2, 146, LIGHT, outline=DARK)
+    # D5: the logo keeps its English "GetBackers"; the ゲットバッカーズ ruby plate is blanked white
+    pal = palette(rom, struct.unpack_from('<I', rom, TITLE)[0] - 0x08000000 - 0x200, 256)
+    for y in range(RUBY[2], RUBY[3]):
+        light = [x for x in range(RUBY[0], RUBY[1]) if sum(pal[px[y][x]]) > 600]
+        for x in range(light[0], light[-1] + 1):
+            px[y][x] = WHITE
     return px
 
 

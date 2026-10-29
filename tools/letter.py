@@ -22,8 +22,9 @@ def draw(px, text, cx, y, ink, sx=1, sy=1, bold=0, track=0, lo=4, hi=236, outlin
         for r, row in enumerate(rows):
             for k, ch in enumerate(row):
                 if ch == '#':
+                    b = bold if sx > 1 or row[k + 1:k + 3] != '.#' else 0     # bold never closes a 1 px gap (m)
                     dots |= {(xx, yy) for yy in range(y + (top + r) * sy, y + (top + r + 1) * sy)
-                             for xx in range(x + k * sx, x + (k + 1) * sx + bold)}
+                             for xx in range(x + k * sx, x + (k + 1) * sx + b)}
         x += adv * sx + track
     if outline is not None:
         for xx, yy in {(a + i, b + j) for a, b in dots for i in (-1, 0, 1) for j in (-1, 0, 1)} - dots:

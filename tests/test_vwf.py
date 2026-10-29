@@ -78,6 +78,17 @@ def test_letter_lands_at_col_with_font_rows(rom):
 
 
 @needs_rom
+def test_first_line_lifted_above_canvas_keeps_pitch(rom):
+    # line 1 starts Y_LIFT px above canvas y 0: its blank top rows are dropped, not clamped (lines stay LINE_H apart)
+    for row in (0, vwf.LINE_H):
+        _, _, _, canvas = run(rom, b"A", row=row)
+        top, rows, _ = vwf.FONT["A"]
+        y = row - vwf.Y_LIFT + top + vwf.ROW_OFF
+        assert y >= 0 and pixels(canvas, 0, y, 5, len(rows)) == rows
+        assert "".join(pixels(canvas, 0, 0, 256, 64)).count("#") == "".join(rows).count("#")
+
+
+@needs_rom
 def test_line_break_then_char_and_wrap(rom):
     r, ctx, ptr, _ = run(rom, "α".encode("cp932") + b"B")
     assert r == 1 and ctx[3] == vwf.LINE_H and ctx[2] == vwf.ADV["B"] - 1 and ptr == 2 + 1 - 2
