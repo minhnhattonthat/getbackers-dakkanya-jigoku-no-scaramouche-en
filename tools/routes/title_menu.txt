@@ -1,0 +1,6 @@
+# cold boot to the title menu and wait on its help line (path C text: "start a new game"), blank save
+600 -
+6 start
+120 -
+6 start
+300 -

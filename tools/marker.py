@@ -29,6 +29,8 @@ def marker(e):
     spec = ''.join(' ' + p for p in PRINTF.findall(jp))
     if len(parts) == 1 and len(jp) <= SHORT:
         return mid + spec + ' Abc'
+    if max(map(len, parts)) <= 6:      # choices (はい{br}いいえ): the yes/no window is 6 tiles wide
+        return '{br}'.join([mid + spec] + ['Ab'] * (len(parts) - 1))
     if len(parts) == 1:
         return '{br}'.join([fill(mid + spec)] + [fill('')[1:]] * (LINES - 1))
     return '{br}'.join(fill((mid + spec) if i == 0 else '', LINE)[0 if i == 0 else 1:] for i in range(len(parts)))
