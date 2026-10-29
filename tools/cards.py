@@ -164,6 +164,7 @@ def apply(rom, writes):
             rom_text._write(rom, writes, slot(i) + 4 * k, struct.pack('<I', 0x08000000 + off), 'card %d ptr' % i)
     loc_apply(rom, writes)
     sheet_apply(rom, writes)
+    news_apply(rom, writes)
 
 
 def pointer_words():
@@ -355,9 +356,59 @@ def sheet_apply(rom, writes):
 
 
 def sheet_ranges():
-    """[(start, end)] of the sheets' LZ77 blocks in the original ROM (build.allowed)."""
+    """[(start, end)] of the LZ77 blocks rewritten in place, in the original ROM (build.allowed)."""
     rom = ROM.read_bytes()
-    return [(off, off + ((lzscan.lz77(rom, off)[1] + 3) & ~3)) for off in SHEETS]
+    return [(off, off + ((lzscan.lz77(rom, off)[1] + 3) & ~3)) for off in SHEETS + [NEWS]]
+
+
+# --- 7NEWS intro screen: one 4bpp sheet, 16 tiles wide, reached by a table: rewritten in place -------------------
+# Headline strip (BG1 rows 13-14): sheet columns 9-15 of rows 0, 2, 4, 6 side by side, rows 1, 3, 5, 7 below
+# (224x16 px; white 0xF, text x 5-146, the 7N mark after it). Photo (BG2): rows 1-8, columns 0-8 (72x64 px), its
+# caption box fill 6 at y 51-61.
+NEWS = 0x1A6480
+STRIP = [[r * 16 + 9 + c for r in rows for c in range(7)] for rows in ((0, 2, 4, 6), (1, 3, 5, 7))]
+PHOTO = [[(r + 1) * 16 + c for c in range(9)] for r in range(8)]
+
+
+def grid(tiles, layout):
+    """Pixels of tiles laid out as rows of tile indices (4bpp)."""
+    px = [[0] * (8 * len(layout[0])) for _ in range(8 * len(layout))]
+    for r, row in enumerate(layout):
+        for c, n in enumerate(row):
+            for y, line in enumerate(tile_px(tiles, n)):
+                px[r * 8 + y][c * 8:c * 8 + 8] = line
+    return px
+
+
+def ungrid(tiles, layout, px):
+    for r, row in enumerate(layout):
+        for c, n in enumerate(row):
+            tiles[32 * n:32 * n + 32] = bytes(px[r * 8 + y][c * 8 + x] | px[r * 8 + y][c * 8 + x + 1] << 4
+                                              for y in range(8) for x in range(0, 8, 2))
+
+
+def relabel(px, box, fill, text, style=(1, 1, 0, 0)):
+    """Clear box (x0, x1, y0, y1) to fill, then draw text centred in it in the box's commonest other colour."""
+    x0, x1, y0, y1 = box
+    inks = [v for r in px[y0:y1] for v in r[x0:x1] if v != fill]
+    ink = max(set(inks), key=inks.count)
+    for y in range(y0, y1):
+        px[y][x0:x1] = [fill] * (x1 - x0)
+    letter.draw(px, text, (x0 + x1) // 2, (y0 + y1) // 2 - 5 * style[1], ink, *style, lo=x0, hi=x1)
+
+
+def news_apply(rom, writes):
+    tiles = bytearray(lzscan.lz77(rom, NEWS)[0])
+    px = grid(tiles, STRIP)
+    relabel(px, (5, 147, 3, 14), 0xF, 'Ura-Tocho Raid Underway?', (1, 1, 1, 0))
+    ungrid(tiles, STRIP, px)
+    px = grid(tiles, PHOTO)
+    relabel(px, (14, 66, 51, 61), 6, 'URA-TOCHO')    # x < 14 is behind the newscaster's hair
+    ungrid(tiles, PHOTO, px)
+    data = lzcomp.compress(bytes(tiles))
+    old = (lzscan.lz77(rom, NEWS)[1] + 3) & ~3
+    assert len(data) <= old, '7NEWS sheet: %d bytes > %d' % (len(data), old)
+    rom_text._write(rom, writes, NEWS, data + bytes(old - len(data)), '7NEWS sheet')
 
 
 def loc_apply(rom, writes):
