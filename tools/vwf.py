@@ -18,8 +18,9 @@ XMAX = 224                      # A/B: wrap when a glyph would end past this can
 CMAX = 232                      # C: the help line stops drawing past this canvas x (screen 240)
 ROW_OFF = 1                     # font_en rows 0-10 -> glyph rows 1-11
 LINE_H = 11                     # A/B line pitch in px: ctx+0x6B counts pixels (the game's own pitch was 16)
-Y_LIFT = 1                      # px above the game's first line (clamped at canvas y 0); the dialogue box shows canvas
-                                # y 8-41 only (tile row 0 is not on the map): 3 lines x 11 px, ink rows 9-40
+Y_LIFT = 2                      # px above the game's first line (clamped at canvas y 0); the dialogue box shows canvas
+                                # y 8-39 only (tile row 0 is not on the map, the screen ends below 39): 3 lines x 11
+                                # px = font rows 0-10 at y 7-39, so font row 0 (no glyph uses it) is hidden on line 1
 EXTRA = {'—': 0xA0, '…': 0xA1}   # bytes 0xA0-0xDF are never a Shift-JIS lead: free for extra glyphs
 NCODES = 0xE0
 STEP_AT, C_AT = 0, 4            # entry points (CODE + n): branches to vwf_step / vwf_c

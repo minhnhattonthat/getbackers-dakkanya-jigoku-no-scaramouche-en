@@ -206,6 +206,6 @@
 {"id": "045F24", "ptrs": ["85C1C"], "max": 28, "jp": "蛮「奪り還して来たぞ……」", "en": "Ban: \"We got it back...\"", "status": "done", "note": ""},
 {"id": "045F40", "ptrs": ["85C24"], "max": 44, "jp": "小学生「ゴクローゴクロー。はい、消費税分」", "en": "Schoolboy: \"Good work,{br}good work. Here's the tax money.\"", "status": "done", "note": ""},
 {"id": "045F6C", "ptrs": ["85C44"], "max": 68, "jp": "銀次「蛮ちゃーん。そんなことより、早くハンバーガー買いに行こうよ」", "en": "Ginji: \"Ban-chaaan. Never mind that,{br}let's go buy the hamburger already.\"", "status": "done", "note": ""},
-{"id": "045FB0", "ptrs": ["85C38"], "max": 44, "jp": "みみっちー仕事引き受けると思うなよ……」", "en": "measly jobs like this...\"", "status": "done", "note": ""},
-{"id": "045FDC", "ptrs": ["85C34"], "max": 64, "jp": "蛮「お、お前、言っとくがな…いっつもいっつもオレらがこんな……", "en": "Ban: \"Y-you, lemme tell ya somethin'...{br}Don't think we always, always take", "status": "done", "note": ""}
+{"id": "045FB0", "ptrs": ["85C38"], "max": 44, "jp": "みみっちー仕事引き受けると思うなよ……」", "en": "...measly jobs like this...\"", "status": "done", "note": ""},
+{"id": "045FDC", "ptrs": ["85C34"], "max": 64, "jp": "蛮「お、お前、言っとくがな…いっつもいっつもオレらがこんな……", "en": "Ban: \"Y-you, lemme tell ya somethin'...{br}Don't think we always, always take these...", "status": "done", "note": ""}
 ]
