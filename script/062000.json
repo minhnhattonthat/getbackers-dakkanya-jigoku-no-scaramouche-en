@@ -1,7 +1,7 @@
 [
-{"id": "062014", "ptrs": ["9607C"], "max": 64, "jp": "銀次「あ～あ、腹減った～、波児になんか食わせてもらおうっと！」", "en": "Ginji: \"Aww~ I'm starving~ I'm gonna get Paul{br}to feed me something!\"", "status": "done", "note": ""},
+{"id": "062014", "ptrs": ["9607C"], "max": 64, "jp": "銀次「あ～あ、腹減った～、波児になんか食わせてもらおうっと！」", "en": "Ginji: \"Aww~ I'm starving~ I'm gonna{br}get Paul to feed me something!\"", "status": "done", "note": ""},
 {"id": "062054", "ptrs": ["96070"], "max": 40, "jp": "蛮「まー、期待しないで待ってっから」", "en": "Ban: \"Yeah, yeah, we won't hold our breath.\"", "status": "done", "note": ""},
-{"id": "06207C", "ptrs": ["96064"], "max": 72, "jp": "『ＨＯＧ』のことは残念だったけど、この謎はいつか必ず解いて見せるわ」", "en": "It's a shame about 'HOG', but I'll crack that{br}mystery someday, you'll see.\"", "status": "done", "note": ""},
+{"id": "06207C", "ptrs": ["96064"], "max": 72, "jp": "『ＨＯＧ』のことは残念だったけど、この謎はいつか必ず解いて見せるわ」", "en": "It's a shame about 'HOG', but I'll crack{br}that mystery someday, you'll see.\"", "status": "done", "note": ""},
 {"id": "0620C4", "ptrs": ["96058"], "max": 60, "jp": "ＨＥＶＮ「やったわね、みんな！　これでミッション終了よ。", "en": "Hevn: \"You did it, everyone! Mission complete.", "status": "done", "note": ""},
 {"id": "062100", "ptrs": ["979C0"], "max": 8, "jp": "雷魂", "en": "Thunder Soul", "status": "done", "note": ""},
 {"id": "062108", "ptrs": ["979BC"], "max": 20, "jp": "銀次と天子峰の写真", "en": "Photo of Ginji and Teshimine", "status": "done", "note": ""},

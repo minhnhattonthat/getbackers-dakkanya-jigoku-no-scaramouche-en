@@ -2,7 +2,7 @@
 
 Updated at the end of every session. Keep it to what the next session needs; history is in git.
 
-- **Phase:** 6 (translate) done; next is phase 7 (insert, fit, check).
+- **Phase:** 7 (insert, fit, check) done; next is phase 8 (QA in the emulator).
 - **Done (phase 1):** `docs/re/` records encoding (Shift-JIS, `α` 0x83BF = line break, printf `%s/%3d/%6d`),
   the dialogue box (12 px cells, 20 chars x 2 lines, auto-wrap), the 12x12 SJIS font (0x26E200) and an 8x8 ASCII
   font (0x2FA64), the string block 0x2DB4C-0x62350 with absolute u32 pointers (tables 0x63000-0x98000), LZ77,
@@ -43,8 +43,15 @@ Updated at the end of every session. Keep it to what the next session needs; his
   `docs/reviewer-brief.md`, `docs/style-reference.md`, `docs/synopsis.md`, `glossary.md` (302 terms + batch
   decisions). Batch files live in `work/tl/` (gitignored; `script/` is the source of truth). Build + smoke ok
   (sha1 7fe398ca...). Opening dialogue checked in-game (step 4): wraps cleanly in 3 lines.
-- **Next:** phase 7 (insert, fit, check): romdiff allowed ranges for the relocated text (past 0x400000) + engine,
-  write-log check, control codes; then phase 8 tours (`text_tour.py` on the English build, warp_all, visual QA).
+- **Done (phase 7):** build gate: romdiff write log + allowed ranges (string block, VWF hooks, 0x400000+, single
+  pointer words) + 32 MiB cap; `tests/test_insert.py` (builds its own ROM: every entry reads back through every
+  pointer, no stale reader of moved text, `jp_left.py --slots build/slots.txt --known tools/jp_known.txt` clean);
+  stored-script lint = `batches.check_entry(stored=True)` (glossary, speakers, honorifics, `{br}`/printf, font,
+  stub last lines, no empty en). Balanced box wrap (`batches.wrap` DP; `batches.py rewrap` re-wrapped 1363
+  entries, 125 stubs gone). Details: `docs/re/text.md` §Insert checks. Check 32 passed; smoke ok
+  (sha1 aaf24002...); step 4 warp draws the opening line.
+- **Next:** phase 8 tours: `text_tour.py` on the English build, `warp_all.py` (refreshes `work/states/` from the
+  English build), visual QA chunks + `qa_gate.py`, graphics-text rows.
 - **Phase 8 checks from translation:** 0x2DE14 `の経験値を得た` -> " EXP gained" (how the number joins it);
   item found/full message `"` + name + `" found!` (0x30F4C/50/60); 0x2F0E0 Alpha label; 0x31538 Pochi's Room sign
   alignment; help-bar printf lines with long names (`%s` budget counts 8 W). Paro (parrot) speaks in caps.
@@ -57,7 +64,7 @@ Updated at the end of every session. Keep it to what the next session needs; his
     reached by a mode request, not their real field exit (find a map exit with target 0xEF/0xF0/0xFA-0xFD).
   - Warped party is a new game's (Ginji only, level 1): no GOD/NOENC yet (no HP address); add if a QA route dies.
   - Text that needs no translation but is `todo`: full-width numbers 0x2E604-0x2E858; batches can carry en = jp.
-  - 0x6AF14 save-file message (code-referenced, outside the block) stays Japanese; add to `jp_left.py --known`.
+  - 0x6AF14 developer note copied into the save data (never shown) stays Japanese; listed in `tools/jp_known.txt`.
   - Recon leftovers: 7NEWS headline strip loader; printf callers of the 12 `%s/%d` strings and the `α/β` menu
     labels; 0x3E8000-0x3EB7E0 tables; free space 0x3EB7E0+ not trap-tested;
     low-confidence graphics rows (check now with the warp tool in phase 8).

@@ -80,14 +80,21 @@ def test_text_is_never_marked_data_silently(recs, script):
 
 
 def test_en_lint(script):
+    import batches
     import vwf
     import windows
     t = vwf.en_table()
+    rows = batches.glossary()
     errs = []
     for e in script.values():
         en, jp = e["en"], e["jp"]
-        if not en or e["status"] == "data":
+        if e["status"] == "data":
             continue
+        if jp and not en:
+            errs.append("%s: no en (%s)" % (e["id"], e["status"]))
+            continue
+        # the batch check on the stored text: glossary, speakers, honorifics, {br} and printf, font, stub lines
+        errs += ["%s: %s" % (e["id"], x) for x in batches.check_entry(e, en, rows, stored=True) if "too long" not in x]
         try:
             t.encode(en)
         except ValueError as x:

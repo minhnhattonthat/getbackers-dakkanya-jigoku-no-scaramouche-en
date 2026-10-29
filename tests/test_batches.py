@@ -18,6 +18,13 @@ def test_wrap_keeps_lines_in_the_box_and_words_whole():
     assert all(vwf.width(l) <= 216 for l in lines) and len(lines) > 3
 
 
+def test_wrap_balances_lines_and_leaves_no_stub():
+    lines = batches.wrap("Ginji: \"The storeroom's open! Let's go check it out!\"", 216)
+    assert lines == ["Ginji: \"The storeroom's open!", "Let's go check it out!\""]
+    e = dict(BOX, jp="蛮「よし」")
+    assert any("stub" in x for x in batches.check_entry(e, "Ban: \"Let's go check it out right now{br}ok.\"", ROWS, stored=True))
+
+
 def test_wrapped_box_text_passes_the_window_lint():
     en = "Ban: \"That's right. I'm Ban Mido, the guy with a nearly perfect success rate, and you'd better believe it.\""
     assert not windows.check(BOX, batches.wrapped(BOX, en))

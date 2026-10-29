@@ -1,0 +1,4 @@
+06AF14 developer note written into the save data (0x22B90 copies it to SRAM); never shown (docs/re/text.md)
+06AF38 same note
+06AF54 same note
+06AF6C same note

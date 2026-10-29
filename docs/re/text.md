@@ -112,6 +112,19 @@ guess for menus not toured yet (ENEMIES bios, battle quips). `%s` counts as 8 W'
 - "Empty string" pointers aim at zero padding after a string (0x68840 name table -> 0x2F618, 0x63998 -> 0x2DD24,
   0x63B1C.. -> 0x2E218): `unpack` ends that string's slot before the target so a longer text never fills it.
 
+## Insert checks (phase 7) - `tools/build.py`, tests/test_insert.py, tests/test_script.py
+- Build fails on: romdiff write-log errors (wrong original bytes, overlap, overwrite, unlogged change), any write
+  outside `build.allowed()` (string block, VWF hook sites, 0x400000+) other than exactly one pointer word of a
+  string, and a ROM past 32 MiB. English build: 8745 writes (5344 text, 3397 pointers, VWF code + 3 hooks).
+- test_insert: every text entry reads back as its encoded `en` through every pointer; no word in the original ROM
+  that points at a moved string is left unrewritten (except the 0x35xxxx-0x3Cxxxx graphics coincidences);
+  `jp_left.py --slots` (build writes `build/slots.txt`, + `--known tools/jp_known.txt`) finds no Japanese.
+- Lint on the stored script (test_en_lint, `batches.check_entry(stored=True)`): font, printf order, `{br}` (exact
+  outside box text, at least the JP's in box text), glossary avoid/speaker/honorific, ordinal after a variable, no
+  empty `en`, budgets, no stub last line (< 6 letters after a wrap break).
+- Box text wraps balanced (`batches.wrap`: greedy line count, then least squared slack, a break after . ! ? ,
+  preferred); `batches.py rewrap` re-wraps script/ after a wrap change.
+
 ## Script (phase 4) - `script/<window>.json`
 - `tools/extract.py` dumps every record of the block, one file per 0x2000 ROM bytes, one JSON entry per line:
   `id` (offset), `ptrs`, `max` (bytes in place; longer text moves past 0x400000 and is repointed), `jp`, `en`,

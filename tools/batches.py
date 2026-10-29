@@ -6,6 +6,7 @@
     python -X utf8 tools/batches.py fit "text" [--window box]          wrapped lines with their px widths
     python -X utf8 tools/batches.py pairs OUT BATCH..                  reviewer pairs file (>> id | JP / EN, story order)
     python -X utf8 tools/batches.py story                              work/tl/story.txt: all text by first event step
+    python -X utf8 tools/batches.py rewrap                             re-wrap stored box text in script/ (wrap change)
 
 Input TSV: id, speaker, form, limit, jp. Output TSV: id, English (prose; the merge word-wraps box lines with {br}
 at windows.WINDOWS px, so translators write {br} only where the JP has one). Order = pointer order (script order)."""
@@ -90,18 +91,34 @@ def terms_for(jp, rows):
 
 # --- wrap / check -----------------------------------------------------------------------------------------------
 def wrap(text, px):
-    """Greedy word wrap of one {br}-free segment to lines of at most px (vwf.width; %s counted as 8 W)."""
+    """Balanced word wrap of one {br}-free segment to lines of at most px (vwf.width; %s counted as 8 W): as few lines
+    as greedy wrap, then the breaks with the least sum of squared slack (even lines, no one-word stub at the end),
+    preferring a break after . ! ? or a comma."""
     def w(s):
         return vwf.width(PRINTF.sub('W' * 8, s))
-    lines, cur = [], ''
-    for word in text.split(' '):
+    words = text.split(' ')
+    n, cur = 1, ''
+    for word in words:
         t = cur + ' ' + word if cur else word
-        if cur and w(t) > px:
-            lines.append(cur)
-            cur = word
-        else:
-            cur = t
-    return lines + [cur]
+        n, cur = (n + 1, word) if cur and w(t) > px else (n, t)
+    best = {(0, 0): (0, None)}          # (lines, words placed) -> (cost, previous words placed)
+    for k in range(1, n + 1):
+        for j in range(1, len(words) + 1):
+            for i in range(j):
+                if (k - 1, i) not in best:
+                    continue
+                lw = w(' '.join(words[i:j]))
+                if lw > px and j - i > 1:
+                    continue
+                c = best[(k - 1, i)][0] + (px - lw) ** 2 - (px // 4) ** 2 * (j < len(words) and words[j - 1][-1:] in tuple('.!?,'))
+                if (k, j) not in best or c < best[(k, j)][0]:
+                    best[(k, j)] = (c, i)
+    lines, j = [], len(words)
+    for k in range(n, 0, -1):
+        i = best[(k, j)][1]
+        lines.insert(0, ' '.join(words[i:j]))
+        j = i
+    return lines
 
 
 def wrapped(e, en):
@@ -120,10 +137,20 @@ def wrapped(e, en):
     return lead + '{br}'.join(l for seg in core.split('{br}') for l in wrap(seg, px)) + trail
 
 
-def check_entry(e, en, rows):
+def check_entry(e, en, rows, stored=False):
+    """Errors for one translation. stored: en as script/ holds it, box text already wrapped (more {br} than the JP;
+    checks that read words see the wrap breaks as spaces, and a wrapped last line under 6 letters is a stub)."""
     errs, jp = [], e['jp']
     if not en.strip():
         return ['empty']
+    box = stored and windows.window_of(e) == 'box'
+    if box:
+        if en.count('{br}') < jp.count('{br}'):
+            errs.append('{br} count %d, JP has %d' % (en.count('{br}'), jp.count('{br}')))
+        last = en.strip(BLANK).split('{br}')[-1]
+        if en.count('{br}') > jp.count('{br}') and len(last.strip()) < 6:
+            errs.append('stub last line %r' % last)
+    words = en.replace('{br}', ' ') if box else en
     if re.search(r'[\t]|\\u[0-9a-fA-F]{4}|\\n', en):
         errs.append('tab, \\n or \\u escape')
     bad = sorted({c for c in en.replace('{br}', '') if c not in vwf.FONT})
@@ -131,18 +158,18 @@ def check_entry(e, en, rows):
         errs.append('characters not in the font: %s' % ''.join(bad))
     if PRINTF.findall(en) != PRINTF.findall(jp):
         errs.append('printf specifiers differ from the JP (%s)' % ' '.join(PRINTF.findall(jp)) or 'none')
-    if en.count('{br}') != jp.count('{br}') and e['id'] not in LITERAL_ALPHA:
+    if not box and en.count('{br}') != jp.count('{br}') and e['id'] not in LITERAL_ALPHA:
         errs.append('{br} count %d, JP has %d (write {br} only where the JP has one)' % (en.count('{br}'), jp.count('{br}')))
     if re.sub(r'\{br\}', '', en).count('{') or '}' in re.sub(r'\{br\}', '', en):
         errs.append('braces other than {br}')
     if re.search(r'%(?:s|3d|6d)(st|nd|rd|th)\b', en):
         errs.append('ordinal suffix glued to a variable')
-    for x in windows.check(e, wrapped(e, en)):
+    for x in windows.check(e, en if stored else wrapped(e, en)):
         errs.append('too long for %s (%s): %s' % (windows.window_of(e), limit_of(e), x))
     m = SPEAKER.match(jp)
     for jps, enr, avoid, section in rows:
         for a in avoid:
-            if re.search(r'\b%s\b' % re.escape(a), en):
+            if re.search(r'\b%s\b' % re.escape(a), words):
                 errs.append('glossary: avoid %r (use %r)' % (a, enr))
         if section not in ('Characters', 'Labels'):
             continue
@@ -151,7 +178,7 @@ def check_entry(e, en, rows):
                 errs.append('speaker %s must be written %r' % (j, enr + ': '))
             for h in term_hits(jp, j) if section == 'Characters' else ():
                 hon = next((HONORIFIC[k] for k in HONORIFIC if jp.startswith(k, h.end())), None)
-                if hon and enr.split()[0] + hon not in en and enr + hon not in en:
+                if hon and enr.split()[0] + hon not in words and enr + hon not in words:
                     errs.append('honorific: %s%s -> %s%s' % (j, jp[h.end():h.end() + 2], enr.split()[0], hon))
     return errs
 
@@ -253,20 +280,32 @@ def cmd_merge(a):
         if r is None:
             sys.exit('%s: not merged' % b)
         got.update(r)
-    files = {}
-    for f in sorted(extract.SCRIPT.glob('*.json')):
-        import json
-        files[f] = json.loads(f.read_text(encoding='utf-8'))
+    n = _update(lambda e: e['id'] in got and dict(en=wrapped(e, got[e['id']]), status='done'))
+    print('merged %d entries from %s' % (n, ' '.join(a.batch)))
+
+
+def cmd_rewrap(a):
+    """Re-wrap stored box text with wrap() (after a wrap change); wrap breaks are the {br} the JP doesn't have."""
+    def new(e):
+        en = e['en'].replace('{br}', ' ') if not e['jp'].count('{br}') else e['en']
+        return e['en'] and e['status'] == 'done' and wrapped(e, en) != e['en'] and dict(en=wrapped(e, en))
+    print('rewrapped %d entries' % _update(new))
+
+
+def _update(fn):
+    """Apply fn(entry) -> {field: value} or falsy to every script/ entry; rewrite the files that changed."""
+    import json
     n = 0
-    for f, es in files.items():
-        hit = False
+    for f in sorted(extract.SCRIPT.glob('*.json')):
+        es, hit = json.loads(f.read_text(encoding='utf-8')), False
         for e in es:
-            if e['id'] in got:
-                e['en'], e['status'] = wrapped(e, got[e['id']]), 'done'
+            d = fn(e)
+            if d:
+                e.update(d)
                 hit, n = True, n + 1
         if hit:
             extract.dump(es, f)
-    print('merged %d entries from %s' % (n, ' '.join(a.batch)))
+    return n
 
 
 def cmd_fit(a):
@@ -326,6 +365,7 @@ def main():
     x.add_argument('out')
     x.add_argument('batch', nargs='+')
     s.add_parser('story')
+    s.add_parser('rewrap')
     a = p.parse_args()
     globals()['cmd_' + a.cmd](a)
 
