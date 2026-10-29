@@ -22,6 +22,8 @@ def test_wrapped_box_text_passes_the_window_lint():
     en = "Ban: \"That's right. I'm Ban Mido, the guy with a nearly perfect success rate, and you'd better believe it.\""
     assert not windows.check(BOX, batches.wrapped(BOX, en))
     assert batches.wrapped(BOX, en).count("{br}") == 2
+    blank = dict(BOX, jp="　【　ポチの部屋　】　")
+    assert batches.wrapped(blank, "[ Pochi's Room ]") == " [ Pochi's Room ] "
 
 
 def test_term_hits_whole_runs_only():
@@ -40,3 +42,7 @@ def test_check_entry_catches_speaker_honorific_avoid_and_codes():
     assert any("honorific" in x for x in errs)
     assert any("printf" in x for x in batches.check_entry(e, "Ginji: \"Ban-chan!\"", ROWS))
     assert any("font" in x for x in batches.check_entry(BOX, "Ban: “Yo.”", ROWS))
+    br = {"id": "y", "ptrs": ["7F000"], "jp": "はい{br}いいえ"}
+    assert not batches.check_entry(br, "Yes{br}No", ROWS)
+    客 = [(["客"], "Customer", [], "Labels")]
+    assert not batches.check_entry({"id": "z", "ptrs": ["7F000"], "jp": "お客さん、どうぞ"}, "Go ahead, sir.", 客)

@@ -26,6 +26,7 @@ PRINTF = re.compile(r'%(?:s|3d|6d)')
 BLANK = ' 　'
 SPEAKER = re.compile(r'^([^「」：…。、！？\s]{1,12})[「：]')
 HONORIFIC = {'さん': '-san', 'くん': '-kun', '君': '-kun', 'ちゃん': '-chan', '様': '-sama', 'サン': '-san'}
+LITERAL_ALPHA = {'02F0E0'}     # α（アルファ） menu label: the α decodes as {br} but is a letter here (docs/re/text.md)
 SCRIPTS = (r'[一-鿿々]', r'[゠-ヿー]', r'[぀-ゟ]', r'[Ａ-Ｚａ-ｚ０-９]')
 
 
@@ -60,7 +61,9 @@ def glossary():
         c = [x.strip() for x in line.strip().strip('|').split('|')] if line.startswith('|') else []
         if len(c) >= 2 and c[0] not in ('JP', '') and not set(c[0]) <= set('-: '):
             avoid = [a.strip() for a in c[4].split(',') if a.strip()] if len(c) > 4 else []
-            rows.append(([j.strip() for j in c[0].split(',')], c[1], avoid, section))
+            # generic speaker labels (notes "Label...": 客, お爺さん, 駅員): speaker check, but お客様 is no honorific
+            sec = 'Labels' if section == 'Characters' and len(c) > 3 and c[3].startswith('Label') else section
+            rows.append(([j.strip() for j in c[0].split(',')], c[1], avoid, sec))
     return rows
 
 
@@ -103,10 +106,18 @@ def wrap(text, px):
 
 def wrapped(e, en):
     """en as stored: box text word-wrapped with {br}; other windows unchanged."""
+    # the en lint wants the JP's leading/trailing blank kept; editors strip trailing spaces, so the merge adds it
+    jp = e['jp']
+    if len(jp) > len(jp.lstrip(BLANK)) and en == en.lstrip(BLANK):
+        en = ' ' + en
+    if len(jp) > len(jp.rstrip(BLANK)) and en == en.rstrip(BLANK):
+        en = en + ' '
     if windows.window_of(e) != 'box':
         return en
     px = windows.WINDOWS['box'][0]
-    return '{br}'.join(l for seg in en.split('{br}') for l in wrap(seg, px))
+    core = en.strip(BLANK)
+    lead, trail = en[:len(en) - len(en.lstrip(BLANK))], en[len(en.rstrip(BLANK)):]
+    return lead + '{br}'.join(l for seg in core.split('{br}') for l in wrap(seg, px)) + trail
 
 
 def check_entry(e, en, rows):
@@ -115,20 +126,17 @@ def check_entry(e, en, rows):
         return ['empty']
     if re.search(r'[\t]|\\u[0-9a-fA-F]{4}|\\n', en):
         errs.append('tab, \\n or \\u escape')
-    bad = sorted({c for c in en if c not in vwf.FONT})
+    bad = sorted({c for c in en.replace('{br}', '') if c not in vwf.FONT})
     if bad:
         errs.append('characters not in the font: %s' % ''.join(bad))
     if PRINTF.findall(en) != PRINTF.findall(jp):
         errs.append('printf specifiers differ from the JP (%s)' % ' '.join(PRINTF.findall(jp)) or 'none')
-    if en.count('{br}') != jp.count('{br}'):
+    if en.count('{br}') != jp.count('{br}') and e['id'] not in LITERAL_ALPHA:
         errs.append('{br} count %d, JP has %d (write {br} only where the JP has one)' % (en.count('{br}'), jp.count('{br}')))
     if re.sub(r'\{br\}', '', en).count('{') or '}' in re.sub(r'\{br\}', '', en):
         errs.append('braces other than {br}')
     if re.search(r'%(?:s|3d|6d)(st|nd|rd|th)\b', en):
         errs.append('ordinal suffix glued to a variable')
-    for strip in (str.lstrip, str.rstrip):
-        if len(jp) - len(strip(jp, BLANK)) and len(en) == len(strip(en, BLANK)):
-            errs.append('JP has a leading/trailing blank: keep one space there')
     for x in windows.check(e, wrapped(e, en)):
         errs.append('too long for %s (%s): %s' % (windows.window_of(e), limit_of(e), x))
     m = SPEAKER.match(jp)
@@ -136,12 +144,12 @@ def check_entry(e, en, rows):
         for a in avoid:
             if re.search(r'\b%s\b' % re.escape(a), en):
                 errs.append('glossary: avoid %r (use %r)' % (a, enr))
-        if section != 'Characters':
+        if section not in ('Characters', 'Labels'):
             continue
         for j in jps:
             if m and m.group(1) == j and not en.startswith(enr + ':'):
                 errs.append('speaker %s must be written %r' % (j, enr + ': '))
-            for h in term_hits(jp, j):
+            for h in term_hits(jp, j) if section == 'Characters' else ():
                 hon = next((HONORIFIC[k] for k in HONORIFIC if jp.startswith(k, h.end())), None)
                 if hon and enr.split()[0] + hon not in en and enr + hon not in en:
                     errs.append('honorific: %s%s -> %s%s' % (j, jp[h.end():h.end() + 2], enr.split()[0], hon))

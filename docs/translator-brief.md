@@ -26,8 +26,8 @@ next. Do all translation yourself; do not dispatch subagents.
 
 ## Output: `work/tl/<batch>.out.tsv`, written with your file-write tool (not a shell heredoc)
 `id<TAB>English`, every input id exactly once, same order. Plain ASCII: straight quotes, `...`, `--`, `~`; no tabs,
-no Japanese or fullwidth characters, no `\uXXXX`, no `\n`. If the JP starts or ends with a blank (a fullwidth space),
-start/end the English with one space.
+no Japanese or fullwidth characters, no `\uXXXX`, no `\n`. A JP leading/trailing fullwidth space needs nothing from
+you (the merge adds the space).
 
 ## Validate
 Run `python -X utf8 tools/batches.py check <batch>` from the repo root and fix every reported id until it prints OK.
