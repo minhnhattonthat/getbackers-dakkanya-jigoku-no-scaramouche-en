@@ -42,7 +42,8 @@ def load():
 
 
 def dump(entries, path):
-    path.write_text('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False) for e in entries) + '\n]\n', encoding='utf-8')
+    path.write_text('[\n' + ',\n'.join(json.dumps(e, ensure_ascii=False) for e in entries) + '\n]\n', encoding='utf-8',
+                    newline='\n')
 
 
 def main():
