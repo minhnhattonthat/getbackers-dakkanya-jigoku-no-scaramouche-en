@@ -23,7 +23,10 @@ Y_LIFT = 2                      # px above the game's first line (rows above can
                                 # (blank in every glyph) falls above the canvas
 EXTRA = {'—': 0xA0, '…': 0xA1}   # bytes 0xA0-0xDF are never a Shift-JIS lead: free for extra glyphs
 NCODES = 0xE0
-STEP_AT, C_AT = 0, 4            # entry points (CODE + n): branches to vwf_step / vwf_c
+STEP_AT, C_AT, SPEAKER_AT = 0, 4, 8     # entry points (CODE + n): branches to vwf_step / vwf_c / vwf_speaker
+SPEAKERS = 0x979C4              # game table: (u16 first char of a line, u8 portrait id, pad).., 0xFFFF
+SPEAKER_SITE = 0x1A700          # dialogue task: `ldr r0, [r4, #0x70]` (text) + `bl 0x08020504` (look up its first char)
+SPEAKER_OLD = '206f05f0fffe'
 # loops A and B: (site, original bytes, ctx byte-offset source, end-of-text target, drew-a-char target, pitch, lift)
 # A draws the field box (canvas offset 0: 3 lines like B) and the yes/no window (offset 0x1000: keeps the JP 16 px
 # pitch, the choice cursor steps 16 px); pitch/lift here are for offset 0
@@ -80,6 +83,8 @@ STEP = """
   b vwf_step
   movs r0, r0
   b vwf_c
+  movs r0, r0
+  b vwf_speaker
   movs r0, r0
 
 @ vwf_step(r0 = text ctx, r1 = canvas byte offset, r2 = line pitch px, r3 = lift px) -> r0 = 0 (end of text) /
@@ -333,7 +338,46 @@ rownext:
   bx r0
 call_r3:
   bx r3
+
+@ vwf_speaker(r0 = ROM address of the script word holding the line's text pointer) -> r0 = portrait id, 0xFF = none.
+@ Stands in for 0x08020504, which matches the first Shift-JIS char of the text: binary search of speaker_table().
+vwf_speaker:
+  push {r4, r5, lr}
+  lsls r0, r0, #8
+  ldr r5, lit_speakers
+  ldmia r5!, {r2}
+  movs r1, #0
+sp_loop:
+  cmp r1, r2
+  bhs sp_found
+  adds r3, r1, r2
+  lsrs r3, r3, #1
+  lsls r4, r3, #2
+  ldr r4, [r5, r4]
+  cmp r4, r0
+  bhs sp_high
+  adds r1, r3, #1
+  b sp_loop
+sp_high:
+  adds r2, r3, #0
+  b sp_loop
+sp_found:
+  lsls r1, r1, #2
+  ldr r4, [r5, r1]
+  eors r0, r4
+  lsrs r0, r0, #8
+  beq sp_match
+  movs r0, #0xFF
+  b sp_end
+sp_match:
+  lsls r4, r4, #24
+  lsrs r4, r4, #24
+  bl #0x08020648
+  adds r0, r4, #0
+sp_end:
+  pop {r4, r5, pc}
 .align 2
+lit_speakers: .word SPEAKERS_AT
 lit_adv: .word ADV
 lit_font: .word FONT
 lit_lookup: .word 0x0801A1AD
@@ -394,7 +438,7 @@ def build_code():
     """Bytes at CODE: the code (entry points STEP_AT, C_AT), then the font at CODE + 0x400."""
     fnt = 0x08000000 + CODE + 0x400
     src = STEP
-    for k, v in (('XMAX', XMAX), ('CMAX', CMAX),
+    for k, v in (('XMAX', XMAX), ('CMAX', CMAX), ('SPEAKERS_AT', '%#x' % (fnt + NCODES * 25)),
                  ('.word ADV', '.word %#x' % (fnt + NCODES * 24)), ('.word FONT', '.word %#x' % fnt)):
         src = src.replace(k, str(v))
     code = asm(src, 0x08000000 + CODE)
@@ -402,8 +446,20 @@ def build_code():
     return code.ljust(0x400, b'\0') + font_data()
 
 
+def speaker_table(rom):
+    """The game picks a line's portrait from its first Shift-JIS char (SPEAKERS), which English text no longer has.
+    What each line picked in Japanese, for vwf_speaker: u32 count, sorted u32 (script word offset << 8 | portrait id)..,
+    u32 sentinel. Keyed by the script word because those never move, unlike the text. rom: the original."""
+    ids, o = {}, SPEAKERS
+    while rom[o:o + 2] != b'\xff\xff':
+        ids[bytes(rom[o:o + 2])] = rom[o + 2]
+        o += 4
+    words = sorted(p << 8 | ids[r.raw[:2]] for r in rom_text.unpack(bytes(rom)) for p in r.ptrs if r.raw[:2] in ids)
+    return struct.pack('<%dI' % (len(words) + 2), len(words), *words, 0xFFFFFFFF)
+
+
 def hooks():
-    """[(site, original bytes, hook bytes)] for loops A, B and the help line C."""
+    """[(site, original bytes, hook bytes)] for loops A, B, the help line C and the portrait lookup."""
     fn = 0x08000000 + CODE + 1
     out = [(site, bytes.fromhex(old), asm(HOOK.format(arg=arg, end=0x08000000 + end, drew=0x08000000 + drew,
                                                        fn=fn + STEP_AT, pitch=pitch, lift=lift, choice=CHOICE_PITCH),
@@ -412,13 +468,15 @@ def hooks():
     out.append((C_SITE, bytes.fromhex(C_OLD), asm(HOOK_C.format(ret=0x08000000 + C_RET, fn=fn + C_AT),
                                                     0x08000000 + C_SITE)))
     assert len(out[-1][2]) <= len(C_OLD) // 2, 'help-line hook longer than the checked bytes'
+    out.append((SPEAKER_SITE, bytes.fromhex(SPEAKER_OLD),
+                asm('ldr r0, [r4, #0x64]\n bl #%#x' % (0x08000000 + CODE + SPEAKER_AT), 0x08000000 + SPEAKER_SITE)))
     return out
 
 
 def apply(rom, writes):
     """Writes the VWF code + font at CODE and the hooks into rom (a bytearray of the original), logging to writes."""
     assert len(rom) == CODE, 'VWF goes first, before any relocated text'
-    rom_text._write(rom, writes, CODE, build_code(), 'vwf code+font')
+    rom_text._write(rom, writes, CODE, build_code() + speaker_table(rom), 'vwf code+font+speakers')
     for site, old, new in hooks():
         assert rom[site:site + len(old)] == old, '%X: unexpected bytes' % site
         rom_text._write(rom, writes, site, new, 'vwf hook %X' % site)

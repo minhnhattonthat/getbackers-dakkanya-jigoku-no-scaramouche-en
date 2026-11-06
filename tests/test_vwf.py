@@ -118,6 +118,38 @@ def test_help_line_glyph_break_and_end(rom):
 
 
 @needs_rom
+def test_speaker_gives_each_line_its_japanese_portrait(rom):
+    """vwf_speaker answers what the game's first-char lookup (0x08020504) answered on the Japanese text."""
+    from unicorn import Uc, UC_ARCH_ARM, UC_MODE_THUMB, UC_HOOK_CODE
+    from unicorn.arm_const import UC_ARM_REG_R0, UC_ARM_REG_LR, UC_ARM_REG_SP
+    import rom_text
+    d = ROM.read_bytes()
+    table, o = {}, vwf.SPEAKERS
+    while d[o:o + 2] != b"\xff\xff":
+        table[d[o:o + 2]] = d[o + 2]
+        o += 4
+    recs = rom_text.unpack(d)
+    words = sorted((p, table.get(r.raw[:2], 0xFF)) for r in recs for p in r.ptrs)
+    assert {i for _, i in words} >= {0, 1, 0xFF}
+    u = Uc(UC_ARCH_ARM, UC_MODE_THUMB)
+    u.mem_map(0x08000000, (len(rom) + 0xFFFF) & ~0xFFFF)
+    u.mem_write(0x08000000, rom)
+    u.mem_map(0x03000000, 0x8000)
+    u.mem_map(RET & ~0xFFF, 0x1000)
+    removed = []
+    u.hook_add(UC_HOOK_CODE, lambda *_: removed.append(1), begin=0x08020648, end=0x08020648)
+    # every text word (a line that picks a portrait also clears the old ones), plus words no text uses
+    for p, want in words[::7] + [(0, 0xFF), (words[0][0] - 4, 0xFF), (words[-1][0] + 4, 0xFF)]:
+        removed.clear()
+        u.reg_write(UC_ARM_REG_R0, 0x08000000 + p)
+        u.reg_write(UC_ARM_REG_SP, 0x03007F00)
+        u.reg_write(UC_ARM_REG_LR, RET | 1)
+        u.emu_start(0x08000000 + vwf.CODE + vwf.SPEAKER_AT | 1, RET, count=2000)
+        assert u.reg_read(UC_ARM_REG_R0) == want, hex(p)
+        assert bool(removed) == (want != 0xFF), hex(p)
+
+
+@needs_rom
 def test_nothing_branches_into_a_hook():
     from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
     d = ROM.read_bytes()

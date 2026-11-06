@@ -70,6 +70,15 @@ codes): no `PAC3` anywhere in this ROM, text is plain Shift-JIS.
 - Tests: `tests/test_vwf.py` runs vwf_step/vwf_c in unicorn on the built ROM (glyph rows land where the font says,
   wrap, break, end, Shift-JIS fallback) and checks no branch or code pointer lands inside a hook.
 
+## Portraits - verified (code read, `tools/debug/portraitlog.lua` on both ROMs, issue #1)
+- Dialogue task state 1 (0x0801A6B8) reads the script word at ctx+0x64: 2 = next word is a digit string, atoi = portrait
+  id, then the text; 3 = no portrait, then the text; anything else = the text pointer, and 0x08020504 picks the portrait
+  from the text's first Shift-JIS char through the table 0x080979C4 (u16 char, u8 id: 蛮 0, 銀 1, 小 11...). A match
+  first clears the portraits on screen (0x08020648); no match (0xFF) leaves them up.
+- So the speaker label picked the portrait in ~2400 lines, and English text matched nothing: the last portrait stayed.
+  `vwf_speaker` (hook 0x0801A700) replaces the lookup with `vwf.speaker_table()`, built from the Japanese first chars
+  and keyed by the script word's offset, so every line asks for what it did in Japanese, quirks included.
+
 ## Windows (width gate) - `tools/windows.py`, lint in tests/test_script.py
 | Window | Budget | Entries | Measured |
 |---|---|---|---|

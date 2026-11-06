@@ -106,6 +106,9 @@ Updated at the end of every session. Keep it to what the next session needs; his
   - Recon leftovers: 7NEWS headline strip loader; printf callers of the 12 `%s/%d` strings and the `α/β` menu
     labels; 0x3E8000-0x3EB7E0 tables; free space 0x3EB7E0+ not trap-tested;
     low-confidence graphics rows (check now with the warp tool in phase 8).
+- **Issue #1 (portrait stayed on screen / wrong speaker):** fixed, not released yet. The game picks the portrait from a
+  line's first Shift-JIS char; English matched nothing. `vwf_speaker` + `vwf.speaker_table()` restore the Japanese
+  choice per line (`docs/re/text.md` §Portraits; probe `tools/debug/portraitlog.lua`).
 - **Open bugs:** none.
 - **Waiting on the user:** nothing blocking. Non-blocking: the game's own English labels spell Kazuki `KADSUKI`
   (battle stats/names); D2 (official names) suggests `KAZUKI` - default: change it when those labels are redrawn.
