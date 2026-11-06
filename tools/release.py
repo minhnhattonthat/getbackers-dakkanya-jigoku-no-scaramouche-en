@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 PY = [sys.executable, '-X', 'utf8']
 ORIG = os.path.join(ROOT, 'rom', 'GetBackers Dakkanya - Jigoku no Scaramouche (Japan).gba')
 BUILT = os.path.join(ROOT, 'build', 'getbackers_en.gba')
-VERSION = '1.0'
+VERSION = '1.1'
 PATCH = 'GetBackers_Dakkanya_Jigoku_no_Scaramouche_EN_v%s.bps' % VERSION
 ZIP = os.path.join(ROOT, 'release', 'GetBackers_Dakkanya_Jigoku_no_Scaramouche_EN_v%s.zip' % VERSION)
 

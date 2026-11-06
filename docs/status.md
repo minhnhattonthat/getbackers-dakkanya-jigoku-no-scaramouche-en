@@ -106,7 +106,10 @@ Updated at the end of every session. Keep it to what the next session needs; his
   - Recon leftovers: 7NEWS headline strip loader; printf callers of the 12 `%s/%d` strings and the `α/β` menu
     labels; 0x3E8000-0x3EB7E0 tables; free space 0x3EB7E0+ not trap-tested;
     low-confidence graphics rows (check now with the warp tool in phase 8).
-- **Issue #1 (portrait stayed on screen / wrong speaker):** fixed, not released yet. The game picks the portrait from a
+- **v1.1 published 2026-11-06:** patched CRC32 65538913 / sha1 2b48a200..., patch sha1 0c40ab33.... Gate data was the
+  v1.0 tour: its 353 sheets predate the portrait fix, which was checked by the JP/EN id sweep (27 steps, 305 lines),
+  step 25 shots and warp_all 73/73 instead. Rerun the tour before relying on those sheets for portraits.
+- **Issue #1 (portrait stayed on screen / wrong speaker):** fixed in v1.1. The game picks the portrait from a
   line's first Shift-JIS char; English matched nothing. `vwf_speaker` + `vwf.speaker_table()` restore the Japanese
   choice per line (`docs/re/text.md` §Portraits; probe `tools/debug/portraitlog.lua`).
 - **Open bugs:** none.
